@@ -1,0 +1,9 @@
+{
+    "gemeente" : "wien", 
+    "max_number_of_docs" : 10,
+    "max_ngram_length" : 4,
+    "language_code" : "DE",
+    "acceptance" : "True",
+    "auth_key" : "auth_key",
+    "auth_value" : "auth_value"
+}
