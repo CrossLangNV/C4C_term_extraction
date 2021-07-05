@@ -19,7 +19,7 @@ from spacy.lang.it import Italian
 from spacy.lang.nb import Norwegian
 from spacy_udpipe.language import UDPipeLanguage
 
-from spacy.tokens.token import Token
+from spacy.tokens.span import Span
 from spacy.tokens.doc import Doc
 
 class TermExtractor():
@@ -42,21 +42,33 @@ class TermExtractor():
         self._languages=languages
             
         self._nlp_dict=self._load_nlp_models( )
+        
     
-    def get_terms( self, sentences: List[str], n_jobs=1, batch_size=32, language='en' ):
-                
+    def get_terms( self, sentences: List[str], n_jobs:int=1, batch_size:int=32, language:str='en' ):
+        
+        term_list=[]    
         for doc in self._nlp_dict[ language ].pipe( sentences, n_process=n_jobs, batch_size=batch_size ):
             #for each sentence we return a list of terms (List of spacy Token objects)
-            term_list=self._parse_doc( doc )
-            
-            for term in term_list:
-                #if not clean, continue
-                print( term.text )
-                if not self._term_text_is_clean( term.text ):
-                    continue
-                yield term
-                        
-            
+            term_list.extend( self._parse_doc( doc ) )
+        
+        cleaned_term_list=[]
+        for term in term_list:
+            #if not clean, continue
+            if not self._term_text_is_clean( term.text ):
+                continue
+            term=self._front_cleaning( term )
+            if not term:
+                continue
+            term=self._back_cleaning( term )
+            if not term:
+                continue
+            cleaned_term_list.append( term )
+                
+        #TO DO: should make this list of terms unique.
+                
+        return cleaned_term_list
+
+    
     def _load_nlp_models( self )->Dict[ str, Union[ German, English, Dutch, French, Italian, Norwegian, UDPipeLanguage ] ]:
 
         nlp_dict={}
@@ -93,7 +105,7 @@ class TermExtractor():
 
         return nlp_dict
     
-    def _parse_doc( self, doc:Doc )->List[Token]:
+    def _parse_doc( self, doc:Doc )->List[Span]:
         '''
         Here we rely on the dependency parser, each noun or pronoun is the root of a noun phrase tree, e.g.:
         "I've just watched 'Eternal Sunshine of the Spotless Mind' and found it corny"
@@ -112,15 +124,36 @@ class TermExtractor():
 
         for token in doc:
             if token.pos_ == 'NOUN' or token.pos_ == 'PROPN':
-                #this is Token:
-                terms.append( doc[token.i] )
-                #this is a Span:
+                #this is the NOUN/PROPN:
+                terms.append( doc[token.i:token.i+1 ] )
+                #this is the right edge:
                 terms.append( doc[token.i:token.right_edge.i + 1] )
+                #this is right and left edge:
                 terms.append( doc[token.left_edge.i:token.right_edge.i + 1] )
+                #this is left edge:
                 terms.append( doc[token.left_edge.i: token.i + 1] )
 
-        #TO DO: some terms are tokens, others are span. Fix this.
         return list(set( terms ))
+    
+    
+    def _front_cleaning( self, term:Span )->Union[ type(None), Span ]:
+        
+        location=-1
+        for i, token in enumerate(term):
+            if token.pos_ in self.INVALID_POS_TAGS:
+                if i==(location+1):
+                    location=i
+        return term[ location+1: ]
+
+    def _back_cleaning( self, term:Span )->Union[ type(None), Span ]:
+        
+        location=len( term )
+        for i, token in enumerate( reversed(  term ) ):
+            j=len( term )-i-1
+            if token.pos_ in self.INVALID_POS_TAGS:
+                if j==location-1:
+                    location=j
+        return term[ :location ]
     
     def _term_text_is_clean( self, term_text:str ):
         """
