@@ -10,6 +10,8 @@ RUN python -m spacy download 'fr_core_news_lg'
 RUN python -m spacy download 'it_core_news_lg'
 RUN python -m spacy download 'nb_core_news_lg'
 
+RUN apt-get update && apt-get -y install default-jre
+
 EXPOSE 8888
 
 VOLUME /notebook

@@ -94,6 +94,8 @@ def clean_non_category_words_front(ngram):
 
     This function is for cleaning ngrams such as 'of the decision' / 'the decision' / 'as of the decision'
     """
+    #AD: what if ngram ==None, then ngram[0] pos fails. For example when cleaning something like 'the the'
+    
     if ngram[0].pos_ in INVALID_POS_TAGS:
         return clean_non_category_words_front(ngram[1:])
     else:
@@ -129,9 +131,9 @@ def yield_terms(doc):
 
     """
     for token in doc:
-        if token.pos_ == ('NOUN' or 'PROPN'):
-            yield doc[token.i]
-            yield doc[token.i:token.right_edge.i + 1]
+        if token.pos_ == ('NOUN' or 'PROPN'):  #this does not what is think it does, ('NOUN' or 'PROPN')='NOUN'
+            yield doc[token.i]  #AD: this is token object
+            yield doc[token.i:token.right_edge.i + 1] #AD: this is span object
             yield doc[token.left_edge.i:token.right_edge.i + 1]
             yield doc[token.left_edge.i: token.i + 1]
 
