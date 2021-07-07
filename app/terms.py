@@ -1,5 +1,5 @@
 import string
-from typing import List, Dict, Union, Set
+from typing import List, Dict, Union, Set, Tuple
 
 import spacy
 import spacy_udpipe
