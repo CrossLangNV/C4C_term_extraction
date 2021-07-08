@@ -10,10 +10,9 @@ from src.terms import TermExtractor
 
 from .util import get_doc
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def en_vocab():
     return get_lang_class("en").Defaults.create_vocab()
-
 
 @pytest.fixture()
 def doc_example_1( en_vocab ):
@@ -23,7 +22,6 @@ def doc_example_1( en_vocab ):
     doc=get_doc( en_vocab, words=words, pos=pos, heads=heads )
     return doc
 
-
 @pytest.fixture()
 def doc_example_2( en_vocab ):
     words="This is a test sentence the 12 test sentence 23 27".split()
@@ -31,7 +29,6 @@ def doc_example_2( en_vocab ):
     heads=[1, 0, 2, 1, -3, 3, 2, 1, -4, 1, -2]
     doc=get_doc( en_vocab, words=words, pos=pos, heads=heads )
     return doc
-
 
 @pytest.fixture()
 def doc_example_empty_doc( en_vocab ):
@@ -41,6 +38,69 @@ def doc_example_empty_doc( en_vocab ):
     doc=get_doc( en_vocab, words=words, pos=pos, heads=heads )
     return doc
 
+
+def test_get_terms_en():
+    '''
+    test .get_terms method of TermExtractor class. We use pretrained Spacy model (EN) in this test. So test can fail if other Spacy models are loaded than the ones this test was written with
+    '''
+    
+    sentences=\
+    [ "This is a test sentence the 12 test sentence 23 27 " ,
+      "test sentence",
+      "I've just watched the 'Eternal Sunshine of the Spotless Mind' and found it corny" ,
+      "Credit and mortgage account holders of the rich must submit their requests",
+      "123"
+      "" ]
+    
+    #initialize a TermExtractor object.
+    termextractor=TermExtractor( languages=[ 'en' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False  )
+    pred_terms=termextractor.get_terms( sentences, language='en' )
+    
+    true_terms= \
+    [('test', 'test'),
+     ('sentence', 'sentence'),
+     ('test sentence', 'test sentence'),
+     ('Sunshine', 'Sunshine'),
+     ('Sunshine of the Spotless Mind', 'Sunshine of the Spotless Mind'),
+     ('Eternal Sunshine of the Spotless Mind','eternal Sunshine of the Spotless Mind'),
+     ('Eternal Sunshine', 'eternal Sunshine'),
+     ('Spotless', 'Spotless'),
+     ('Mind', 'Mind'),
+     ('Spotless Mind', 'Spotless Mind'),
+     ('Credit', 'credit'),
+     ('Credit and mortgage', 'credit and mortgage'),
+     ('mortgage', 'mortgage'),
+     ('account', 'account'),
+     ('Credit and mortgage account', 'credit and mortgage account'),
+     ('holders', 'holder'),
+     ('holders of the rich', 'holder of the rich'),
+     ('Credit and mortgage account holders of the rich', 'credit and mortgage account holder of the rich'),
+     ('Credit and mortgage account holders', 'credit and mortgage account holder'),
+     ('requests', 'request')]
+    
+    assert true_terms == pred_terms
+    
+def test_get_terms_de():
+    '''
+    test .get_terms method of TermExtractor class. We use pretrained Spacy model (DE) in this test. So test can fail if other Spacy models are loaded than the ones this test was written with
+    '''
+    
+    sentences=[ 'Kredit-und Hypothekenkontoinhaber der Reichen müssen ihre Anträge stellen' ]
+    
+    #initialize a TermExtractor object.
+    termextractor=TermExtractor( languages=[ 'de' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False  )
+    pred_terms=termextractor.get_terms( sentences, language='de' )
+    
+    true_terms= \
+    [('Kredit-und', 'Kredit-und'), #this could be improved
+     ('Hypothekenkontoinhaber', 'Hypothekenkontoinhaber'),
+     ('Hypothekenkontoinhaber der Reichen', 'Hypothekenkontoinhaber der Reiche'),
+     ('Kredit-und Hypothekenkontoinhaber der Reichen','Kredit-und Hypothekenkontoinhaber der Reiche'),
+     ('Kredit-und Hypothekenkontoinhaber', 'Kredit-und Hypothekenkontoinhaber'),
+     ('Reichen', 'Reiche')]
+    
+    assert true_terms==pred_terms
+    
 
 def test_parse_doc_1( doc_example_1 ):
     
@@ -235,7 +295,7 @@ def test_length_conform(doc_example_2 ):
     
     assert type( doc_example_2  ) == Doc
 
-    term_spans=[doc_example_2[0:2],doc_example_2[0:3] ]
+    term_spans=[doc_example_2[:2],doc_example_2[:3] ]
 
     assert type( term_spans[0] )== Span
     assert type( term_spans[1] )== Span
@@ -254,4 +314,33 @@ def test_length_conform(doc_example_2 ):
         pred_conform.append(termextractor._length_is_conform( term_span )  )
         
     assert true_conform == pred_conform
+
+
+def test_term_does_not_contain_stopword(doc_example_1 ):
+    
+    '''
+    test _term_does_not_contain_stopword method of TermExtractor class
+    '''
+    
+    assert type( doc_example_1  ) == Doc
+    
+    term_spans=[doc_example_1[:3],doc_example_1[:1] ]
+
+    assert type( term_spans[0] )== Span
+    assert type( term_spans[1] )== Span
+    
+    #check that we took the correct n-gram
+    assert term_spans[0].text == 'Credit and mortgage'  #this one does contain a stopword
+    assert term_spans[1].text == 'Credit' #this one does not contain a stopword
+
+    #load an empty TermExtractor ( i.e. without 'any' 'languages' )
+    termextractor=TermExtractor( languages=[ 'en' ], remove_terms_with_stopwords=True  )
+    
+    true_stopwords=[ False, True ]
+    
+    pred_stopwords=[]
+    for term_span in term_spans:
+        pred_stopwords.append(termextractor._term_does_not_contain_stopword( term_span, 'en' )  )
+        
+    assert true_stopwords == pred_stopwords
     
