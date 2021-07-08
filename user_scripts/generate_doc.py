@@ -13,8 +13,8 @@ def get_tags_from_sentence( NLP, sentence ):
         dict_tags['pos'].append( token.pos_ )
         #head should be relative:
         head=token.head.i - token.i
-        if head < 0:
-            head=0
+        #if head < 0:
+        #    head=0
         dict_tags[ 'heads' ].append( head )
         dict_tags[ 'deps' ].append( token.dep_ )
         dict_tags[ 'tags' ].append( token.tag_ )

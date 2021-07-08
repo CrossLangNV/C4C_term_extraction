@@ -46,7 +46,7 @@ class TermExtractor():
     
     PUNCTUATION_AND_DIGITS = string.punctuation.replace('-', '0123456789').replace('\'', '')  #TO DO: check what happens here
 
-    def __init__( self, languages:List[str], max_ngram:int=4, remove_terms_with_stopwords:bool=False , use_spellcheck_tool:bool=False ):
+    def __init__( self, languages:List[str], max_ngram:int=10, remove_terms_with_stopwords:bool=False , use_spellcheck_tool:bool=False ):
         '''
         :param languages: List of Strings. Languages to load.
         :param max_ngram: int. Maximum length of the ngram (i.e. max numer of tokens in the ngram).
@@ -286,13 +286,13 @@ class TermExtractor():
     
     def _term_text_is_clean( self, term_text:str ):
         '''
-        Function checks if all characters in the strings are ASCII, and if it does not consists completely of charachters in self.PUNCTUATION_AND_DIGITS.
+        Function checks if all characters in the strings are ASCII, if it is not empty string, and if it does not contain any characters in self.PUNCTUATION_AND_DIGITS.
         
         :param term: string. The term to be checked.
         :return: True or False
         '''
         
-        if term_text.isascii() and all(
+        if term_text.isascii() and term_text and all(
                 not character in self.PUNCTUATION_AND_DIGITS for character in term_text.strip()):
             return True
         else:
