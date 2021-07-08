@@ -25,6 +25,7 @@ pytest==6.0.1
 pyahocorasick==1.4.1
 language-tool-python==2.5.2
 contractions==0.0.25
+tika==1.24
 ipython
 jupyter
 jupyterlab
