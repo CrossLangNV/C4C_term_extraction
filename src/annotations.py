@@ -40,7 +40,6 @@ def get_paragraphs_index( text:str )->List[ Tuple[ int, int ] ]:
     :return: List[ Tuple[ int, int ] ]. List with offsets of the paragraphs.
     '''
     
-    
     in_paragraph=False
     paragraphs_index=[]
     position=0
