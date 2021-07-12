@@ -1,5 +1,6 @@
 import pytest
-from src.annotations import get_sentences_index, get_paragraphs_index
+from src.annotations.annotations import get_sentences_index, get_paragraphs_index
+from src.annotations.utils import is_token
 
 @pytest.mark.parametrize(
     "text,sentence_indices",
@@ -60,3 +61,70 @@ def test_get_sentences_index( text, paragraph_indices ):
     Unit test for get_paragraphs_index.
     '''
     assert paragraph_indices == get_paragraphs_index( text )
+    
+    
+@pytest.mark.parametrize(
+    "text,start_end_index,true_result",
+    [
+    ("test term text",
+    (5,8),
+    True),
+    ("test termtext",
+    (5,8),
+    False),
+    ("test termtext",
+    (5,12),
+    True),
+    ("test-termtext",
+    (5,12),
+    False),
+    ("test-termtext",
+    (5,12),
+    False),
+    ("term termtex",
+    (0,3),
+    True),
+    ("term-termtext",
+    (0,3),
+    False),
+    ("term-termtext",
+    (0,0),
+    False),
+    ("term-termtext",
+    (0,12),
+    True),
+    ("f g",
+    (2,2),
+    True),
+    ("fg",
+    (1,1),
+    False),
+    ],
+) 
+def test_is_token( text, start_end_index, true_result ):
+    
+    '''
+    Unit test for is_token.
+    '''
+    
+    assert true_result==is_token( start_end_index[0], start_end_index[1], text, special_characters=[ "-","_","+"] )
+    
+
+@pytest.mark.parametrize(
+    "text,start_end_index,true_result",
+    [
+    ("test-termtext",
+    (5,12),
+    True),
+    ("term-termtext",
+    (0,3),
+    True),
+    ],
+) 
+def test_is_token_special_characters( text, start_end_index, true_result ):
+    
+    '''
+    Unit test for is_token (with focus on special characters). 
+    '''
+    
+    assert true_result==is_token( start_end_index[0], start_end_index[1], text, special_characters=["_","+"] )

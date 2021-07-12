@@ -42,9 +42,9 @@ class TermExtractor():
     
     SUPPORTED_LANGUAGES=[ 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr' ]
     
-    INVALID_POS_TAGS = ['DET', 'PUNCT', 'ADP', 'CCONJ', 'SYM', 'NUM', 'PRON', 'SCONJ', 'ADV']
+    INVALID_POS_TAGS = ['DET', 'PUNCT', 'ADP', 'CCONJ', 'SYM', 'NUM', 'PRON', 'SCONJ', 'ADV' ] # , 'VERB', 'AUX' ]
     
-    PUNCTUATION_AND_DIGITS = string.punctuation.replace('-', '0123456789').replace('\'', '')  #TO DO: check what happens here
+    PUNCTUATION_AND_DIGITS = string.punctuation.replace('-', '0123456789').replace('\'', '')+"\t" 
 
     def __init__( self, languages:List[str], max_ngram:int=10, remove_terms_with_stopwords:bool=False , use_spellcheck_tool:bool=False ):
         '''
