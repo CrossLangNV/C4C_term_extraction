@@ -12,10 +12,11 @@ from .utils import is_token
 class AnnotationAdder():
     
     '''
-    A class for converting text to a Cas object with sentence, paragraph, and token annotations. The latter obtained using a TermExtractor.
+    A class for converting text to a Cas object with sentence, paragraph, and token annotations. The latter obtained using a TermExtractor. The cas will be modified inplace and is available via self.cas.
     '''
     
     def __init__( self, typesystem:TypeSystem, config: ConfigParser ):
+        
         '''
         :param typesystem: TypeSystem. Typesystem to use.
         :param config: ConfigParser. ConfigParser object with names of annotations.
@@ -43,6 +44,12 @@ class AnnotationAdder():
         
         
     def create_cas_from_text( self, text:str ):
+        
+        '''
+        Function to convert text (for example obtained via tika) to a Cas (added as sofa at self._config[ 'Annotation' ][ 'SOFA_ID' ] ). Cas will be available as at self.cas.
+        
+        :param text: str. Input text.
+        '''
                 
         self.cas = Cas( typesystem=self._typesystem )
         
@@ -50,6 +57,10 @@ class AnnotationAdder():
         
         
     def add_sentence_annotation( self ):
+        
+        '''
+        Add sentence annotations ( self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] ) to self.cas using the get_sentences_index() helper function. If self.cas already contains self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] annotations, the will be removed before adding new ones. 
+        '''
         
         #first check if AnnotationAdder contains _cas object:
         if not hasattr( self, 'cas' ):
@@ -74,6 +85,10 @@ class AnnotationAdder():
             
     def add_paragraph_annotation( self ):
         
+        '''
+        Add paragraph annotations ( self._config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ) to self.cas using the get_sentences_index() helper function. If self.cas already contains self._config[ 'Annotation' ][ 'PARAGRAPH_TYPE'] annotations, the will be removed before adding new ones. 
+        '''
+        
         #first check if AnnotationAdder contains _cas object:
         if not hasattr( self, 'cas' ):
             raise AttributeError( "AnnotationAdder should contain 'cas' attribute. Please create 'cas' attribute from text via the self.create_cas_from_text method(text), before using the self.add_sentence_annotation() method" )
@@ -96,6 +111,12 @@ class AnnotationAdder():
 
             
     def add_token_annotation( self, terms_lemmas: List[ Tuple[ str, str ] ] ):
+        
+        '''
+        Add token annotations ( self._config[ 'Annotation' ][ 'TOKEN_TYPE' ] ) to self.cas. Tokens should be provided via the list terms_lemmas ( list of (term, lemma) tuples ).
+
+        :param terms_lemmas: List of (term,lemma) Tuples.
+        '''
 
         #Score given to terms. TODO: change this to tfidf or other score.
         SCORE=1.0
