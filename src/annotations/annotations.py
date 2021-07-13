@@ -118,6 +118,10 @@ class AnnotationAdder():
         :param terms_lemmas: List of (term,lemma) Tuples.
         '''
 
+        if not terms_lemmas:
+            print( "List of terms and lemmas is empty. Not adding any TOKEN_TYPE annotations to the cas." )
+            return
+        
         #Score given to terms. TODO: change this to tfidf or other score.
         SCORE=1.0
         
