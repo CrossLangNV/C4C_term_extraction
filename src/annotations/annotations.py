@@ -141,8 +141,14 @@ class AnnotationAdder():
             A.add_word( term_lemma[0].lower(), ( SCORE, term_lemma[1].lower(), term_lemma[0].lower()  ) )
         A.make_automaton()
         
+        sentences=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] )
+        if not sentences:
+            print( "self.cas does not contain sentences ( SENTENCE_TYPE ). Adding sentence annotations via the .add_sentence_annotation() method." )
+            self.add_sentence_annotation()
+            sentences=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] )
+        
         #add token type annotation at correct location using automaton
-        for sentence in self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] ):
+        for sentence in sentences:
             text=sentence.get_covered_text().lower()
             for end_index, ( score, lemma, term ) in A.iter( text ):
                 if not term:

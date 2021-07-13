@@ -1,7 +1,147 @@
+import os
+
+import configparser
+
+from cassis.typesystem import load_typesystem
+
 import pytest
-from src.annotations.annotations import get_sentences_index, get_paragraphs_index
+from src.annotations.annotations import AnnotationAdder, get_sentences_index, get_paragraphs_index
 from src.annotations.utils import is_token
 
+MEDIA_ROOT='tests/test_files'
+                        
+with open( os.path.join( MEDIA_ROOT, 'typesystem.xml' )  , 'rb') as f:
+    TYPESYSTEM = load_typesystem(f)
+
+config = configparser.ConfigParser()
+config.read( os.path.join( MEDIA_ROOT, 'TermExtraction.config' ))
+
+@pytest.fixture()
+def annotation_adder():
+    return AnnotationAdder( TYPESYSTEM, config)
+
+#fixture makes sure each test that uses annotation_adder gets it own fresh object AnnotationAdder object.
+@pytest.mark.parametrize(
+    "text,this_annotation_adder",
+    [
+     ("This is a sentence\n Another one\n\n other\n\n","annotation_adder" ),
+     ("","annotation_adder" ),
+     ("\n","annotation_adder" ),
+    ]
+)
+def test_create_cas_from_text( text, this_annotation_adder, request ):
+    
+    annotation_adder=request.getfixturevalue( this_annotation_adder )
+    annotation_adder.create_cas_from_text( text )
+    assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
+
+    
+@pytest.mark.parametrize(
+    "text,sentences, offsets,this_annotation_adder",
+    [
+     ("This is a sentence\n Another one\n\n other\n\n",
+      ['This is a sentence', 'Another one', 'other'],
+      [(0, 18), (20, 31), (34, 39)],
+      "annotation_adder" ),
+     ("",
+      [],
+      [],
+      "annotation_adder" ),
+     ("\n",
+      [],
+      [],
+      "annotation_adder" ),
+     ("t\n",
+      ['t'],
+      [(0,1)],
+      "annotation_adder" ),
+    ]
+)
+def test_add_sentence_annotation( text, sentences, offsets, this_annotation_adder, request ):
+    
+    annotation_adder=request.getfixturevalue( this_annotation_adder )
+    annotation_adder.create_cas_from_text( text )
+    assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
+    annotation_adder.add_sentence_annotation()
+    sentences_pred=annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID']  ).select( config[ 'Annotation' ]['SENTENCE_TYPE'] )
+    sentences_pred_text=[ sentence.get_covered_text() for sentence in sentences_pred ]
+    offsets_pred=[ (sentence.begin, sentence.end ) for sentence in sentences_pred ]
+    assert sentences_pred_text == sentences
+    assert offsets_pred == offsets
+    
+    
+@pytest.mark.parametrize(
+    "text,paragraphs, offsets,this_annotation_adder",
+    [
+     ("  This is a sentence\n Another one\n\n other\n\n",
+      ['  This is a sentence\n Another one', ' other'],
+      [(0, 33), (35, 41)] ,
+      "annotation_adder" ),
+     ("",
+      [],
+      [],
+      "annotation_adder" ),
+     ("\n",
+      [],
+      [],
+      "annotation_adder" ),
+     ("\t   t\n",
+      ['\t   t'],
+      [(0,5)],
+      "annotation_adder" ),
+    ]
+)
+def test_add_paragraph_annotation( text, paragraphs, offsets, this_annotation_adder, request ):
+    
+    annotation_adder=request.getfixturevalue( this_annotation_adder )
+    annotation_adder.create_cas_from_text( text )
+    assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
+    annotation_adder.add_paragraph_annotation()
+    par_pred=annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID']  ).select( config[ 'Annotation' ]['PARAGRAPH_TYPE'] )
+    par_pred_text=[ par.get_covered_text() for par in par_pred ]
+    offsets_pred=[ (par.begin, par.end ) for par in par_pred ]
+    assert par_pred_text == paragraphs
+    assert offsets_pred == offsets
+    
+    
+@pytest.mark.parametrize(
+    "text, tokens, offsets,this_annotation_adder",
+    [
+     ("  This is a sentence\n Another one\n\n other\n\n",
+      ['This', 'a sentence', 'other'],
+      [(2, 6), (10, 20), (36, 41)] ,
+      "annotation_adder" ),
+     ("",
+      [],
+      [],
+      "annotation_adder" ),
+     ("\n",
+      [],
+      [],
+      "annotation_adder" ),
+     ("\t   t\n",
+      ['t'],
+      [(4,5)],
+      "annotation_adder" ),
+    ]
+)
+def test_add_token_annotation( text, tokens, offsets, this_annotation_adder, request ):
+    
+    #the so called detected terms and lemmas ==> this should typically be obtained via a TermExtractor.
+    terms_lemmas=[ ('this', 'this' ), ('a sentence', 'a sentence'  ), ('other', 'other' ), ( 'the', 'the' ), ( 't', 't' ) ]
+    
+    annotation_adder=request.getfixturevalue( this_annotation_adder )
+    annotation_adder.create_cas_from_text( text )
+    assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
+    #need to add sentence annotations before we can add token annotations.
+    annotation_adder.add_token_annotation( terms_lemmas )
+    token_pred=annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID']  ).select( config[ 'Annotation' ]['TOKEN_TYPE'] )
+    token_pred_text=[ token.get_covered_text() for token in token_pred ]
+    offsets_pred=[ (token.begin, token.end ) for token in token_pred ]
+    assert token_pred_text == tokens
+    assert offsets_pred == offsets
+    
+    
 @pytest.mark.parametrize(
     "text,sentence_indices",
     [
