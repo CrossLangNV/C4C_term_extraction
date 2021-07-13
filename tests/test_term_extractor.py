@@ -6,7 +6,7 @@ from spacy.tokens.doc import Doc
 from spacy.tokens.span import Span
 from spacy.util import get_lang_class
 
-from src.terms import TermExtractor
+from src.terms.terms import TermExtractor
 
 from .util import get_doc
 
