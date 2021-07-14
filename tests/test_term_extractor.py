@@ -31,6 +31,15 @@ def doc_example_2( en_vocab ):
     return doc
 
 @pytest.fixture()
+def doc_example_3( en_vocab ):
+    words="Credit and mortgage account holders of the rich must submit their requests . They live in the City Of Monaco near Nice .".split()
+    pos=['NOUN','CCONJ','NOUN','NOUN','NOUN','ADP','DET','ADJ','VERB','VERB','DET','NOUN','PUNCT','PRON','VERB','ADP','DET','PROPN','ADP','PROPN','SCONJ','PROPN','PUNCT']    
+    heads=[3, -1, -2, 1, 5, -1, 1, -2, 1, 0, 1, -2, -3, 1, 0, -1, 1, -2, -1, -1, -6, -1, -8]
+    ents=[(16, 20, 384), (21, 22, 384)]
+    doc=get_doc( en_vocab, words=words, pos=pos, heads=heads, ents=ents )
+    return doc
+
+@pytest.fixture()
 def doc_example_empty_doc( en_vocab ):
     words="".split()
     pos=[]
@@ -39,9 +48,9 @@ def doc_example_empty_doc( en_vocab ):
     return doc
 
 
-def test_get_terms_en():
+def test_get_terms_ner_en():
     '''
-    test .get_terms method of TermExtractor class. We use pretrained Spacy model (EN) in this test. So test can fail if other Spacy models are loaded than the ones this test was written with
+    test .get_terms_ner method of TermExtractor class. We use pretrained Spacy model (EN, en_core_web_lg ) in this test. So test can fail if other Spacy models are loaded than the ones this test was written with
     '''
     
     sentences=\
@@ -49,12 +58,12 @@ def test_get_terms_en():
       "test sentence",
       "I've just watched the 'Eternal Sunshine of the Spotless Mind' and found it corny" ,
       "Credit and mortgage account holders of the rich must submit their requests",
-      "123"
+      "123",
       "" ]
     
     #initialize a TermExtractor object.
     termextractor=TermExtractor( languages=[ 'en' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False  )
-    pred_terms=termextractor.get_terms( sentences, language='en' )
+    pred_terms,pred_ners=termextractor.get_terms_ner( sentences, language='en' )
     
     true_terms= \
     [('test', 'test'),
@@ -78,18 +87,28 @@ def test_get_terms_en():
      ('Credit and mortgage account holders', 'credit and mortgage account holder'),
      ('requests', 'request')]
     
-    assert true_terms == pred_terms
+    true_ners=\
+    [[('12', 'CARDINAL', 28, 30), ('23 27', 'PERCENT', 45, 50)],
+     [],
+     [("the 'Eternal Sunshine of the Spotless Mind'", 'WORK_OF_ART', 18, 61)],
+     [],
+     [('123', 'CARDINAL', 0, 3)],
+     []]
     
-def test_get_terms_de():
+    assert true_terms == pred_terms
+    assert true_ners == pred_ners
+    
+    
+def test_get_terms_ner_de():
     '''
-    test .get_terms method of TermExtractor class. We use pretrained Spacy model (DE) in this test. So test can fail if other Spacy models are loaded than the ones this test was written with
+    test .get_terms_ner method of TermExtractor class. We use pretrained Spacy model (DE, de_core_news_lg) in this test. So test can fail if other Spacy models are loaded than the ones this test was written with
     '''
     
     sentences=[ 'Kredit-und Hypothekenkontoinhaber der Reichen müssen ihre Anträge stellen' ]
     
     #initialize a TermExtractor object.
     termextractor=TermExtractor( languages=[ 'de' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False  )
-    pred_terms=termextractor.get_terms( sentences, language='de' )
+    pred_terms,pred_ners=termextractor.get_terms_ner( sentences, language='de' )
     
     true_terms= \
     [('Kredit-und', 'Kredit-und'), #this could be improved
@@ -99,7 +118,11 @@ def test_get_terms_de():
      ('Kredit-und Hypothekenkontoinhaber', 'Kredit-und Hypothekenkontoinhaber'),
      ('Reichen', 'Reiche')]
     
+    true_ners=\
+    [[('Kredit-und', 'PER', 0, 10)]]
+    
     assert true_terms==pred_terms
+    assert true_ners==pred_ners
     
 
 def test_parse_doc_1( doc_example_1 ):
@@ -178,6 +201,58 @@ def test_parse_doc_2( doc_example_2 ):
     assert terms_true == terms_text_pred
     
     
+def test_parse_doc_3( doc_example_3 ):
+    
+    '''
+    test _parse_doc method of TermExtractor class.
+    '''
+
+    assert type( doc_example_3 ) == Doc
+    
+    #load an empty TermExtractor ( i.e. without 'any' 'languages' )
+    termextractor=TermExtractor( languages=[] )
+    
+    terms=termextractor._parse_doc( doc_example_3 )
+    
+    terms_text_pred=[ term.text for term in terms ]
+
+    terms_true= \
+    ['Credit',
+     'Credit and mortgage',
+     'Credit and mortgage',
+     'Credit',
+     'mortgage',
+     'mortgage',
+     'mortgage',
+     'mortgage',
+     'account',
+     'account',
+     'Credit and mortgage account',
+     'Credit and mortgage account',
+     'holders',
+     'holders of the rich',
+     'Credit and mortgage account holders of the rich',
+     'Credit and mortgage account holders',
+     'requests',
+     'requests',
+     'their requests',
+     'their requests',
+     'City',
+     'City Of Monaco',
+     'the City Of Monaco',
+     'the City',
+     'Monaco',
+     'Monaco',
+     'Monaco',
+     'Monaco',
+     'Nice',
+     'Nice',
+     'Nice',
+     'Nice']
+    
+    assert terms_true == terms_text_pred
+    
+    
 def test_parse_empty_doc( doc_example_empty_doc ):
     
     '''
@@ -196,6 +271,78 @@ def test_parse_empty_doc( doc_example_empty_doc ):
     terms_true= []
     
     assert terms_true == terms_text_pred
+    
+
+def test_ner_doc( doc_example_1 ):
+    
+    '''
+    test _ner_doc method of TermExtractor class
+    '''
+    
+    assert type( doc_example_1  ) == Doc
+    
+    #load an empty TermExtractor ( i.e. without 'any' 'languages' )
+    termextractor=TermExtractor( languages=[] )
+    
+    ners_pred=termextractor._ner_doc( doc_example_1 )
+    
+    ners_true=[]
+    
+    assert ners_pred == ners_true
+    
+    
+def test_ner_doc( doc_example_2 ):
+    
+    '''
+    test _ner_doc method of TermExtractor class
+    '''
+    
+    assert type( doc_example_2  ) == Doc
+    
+    #load an empty TermExtractor ( i.e. without 'any' 'languages' )
+    termextractor=TermExtractor( languages=[] )
+    
+    ners_pred=termextractor._ner_doc( doc_example_2 )
+    
+    ners_true=[]
+    
+    assert ners_pred == ners_true
+    
+    
+def test_ner_doc( doc_example_3 ):
+    
+    '''
+    test _ner_doc method of TermExtractor class
+    '''
+    
+    assert type( doc_example_3  ) == Doc
+    
+    #load an empty TermExtractor ( i.e. without 'any' 'languages' )
+    termextractor=TermExtractor( languages=[] )
+    
+    ners_pred=termextractor._ner_doc( doc_example_3 )
+    
+    ners_true=[]
+    
+    assert ners_pred == ners_true
+    
+    
+def test_ner_doc( doc_example_empty_doc ):
+    
+    '''
+    test _ner_doc method of TermExtractor class
+    '''
+    
+    assert type( doc_example_empty_doc ) == Doc
+    
+    #load an empty TermExtractor ( i.e. without 'any' 'languages' )
+    termextractor=TermExtractor( languages=[] )
+    
+    ners_pred=termextractor._ner_doc( doc_example_empty_doc )
+    
+    ners_true=[]
+    
+    assert ners_pred == ners_true
     
     
 def test_term_list_is_unique( doc_example_1 ):

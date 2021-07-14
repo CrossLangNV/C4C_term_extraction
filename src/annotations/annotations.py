@@ -8,6 +8,7 @@ from cassis.typesystem import TypeSystem
 from cassis.cas import Cas
 
 from .utils import is_token
+from ..aliases import Named_entity, Term_lemma
 
 class AnnotationAdder():
     
@@ -39,7 +40,10 @@ class AnnotationAdder():
             
         if "TOKEN_TYPE" not in config[ "Annotation" ]:
             raise KeyError( "Annotation section of config file should contain 'TOKEN_TYPE'." )
-                      
+            
+        if "NER_TYPE" not in config[ "Annotation" ]:
+            raise KeyError( "Annotation section of config file should contain 'NER_TYPE'." )
+                                 
         self._config=config
         
         
@@ -110,20 +114,20 @@ class AnnotationAdder():
             self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).add_annotation( paragraph_type( begin=index[0], end=index[1] ) )
 
             
-    def add_token_annotation( self, terms_lemmas: List[ Tuple[ str, str ] ] ):
+    def add_token_annotation( self, terms_lemmas: List[ Term_lemma ] ):
         
         '''
         Add token annotations ( self._config[ 'Annotation' ][ 'TOKEN_TYPE' ] ) to self.cas. Tokens should be provided via the list terms_lemmas ( list of (term, lemma) tuples ).
 
         :param terms_lemmas: List of (term,lemma) Tuples.
         '''
-
-        if not terms_lemmas:
-            print( "List of terms and lemmas is empty. Not adding any TOKEN_TYPE annotations to the cas." )
-            return
         
         #Score given to terms. TODO: change this to tfidf or other score.
         SCORE=1.0
+        
+        if not terms_lemmas:
+            print( "List of terms and lemmas is empty. Not adding any TOKEN_TYPE annotations to the cas." )
+            return
         
         #first check if AnnotationAdder contains _cas object:
         if not hasattr( self, 'cas' ):
@@ -162,7 +166,45 @@ class AnnotationAdder():
                 if is_token( start_index, end_index, text ):
                     self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).add_annotation( \
                      token_type( begin=sentence.begin+start_index, end=sentence.begin+end_index+1, score=SCORE, lemma=lemma, term=term ) )
+                    
+                    
+    def add_named_entity_annotation( self, named_entities_sentences: List[ List[ Named_entity ] ] ):
+        
+        '''
+        Add named entity annotations ( self._config[ 'Annotation' ][ 'NER_TYPE' ] ) to self.cas. Named entities should be provided via a List of List of named entities (Named_entity). Length of this list should be equal to the number of annotated sentences ( i.e. self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] )
+
+        :param named_entities_sentences: List of List of Named_entity.
+        '''
+        
+        #first check if AnnotationAdder contains _cas object:
+        if not hasattr( self, 'cas' ):
+            raise AttributeError( "AnnotationAdder should contain 'cas' attribute. Please create 'cas' attribute from text via the self.create_cas_from_text method(text), before using the self.add_sentence_annotation() method" )
             
+        ner_type=self._typesystem.get_type(  self._config[ 'Annotation' ][ 'NER_TYPE' ] )
+
+        #get the sentences:
+        sentences=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] )
+        if not sentences:
+            print( "self.cas does not contain sentences ( SENTENCE_TYPE ). Adding sentence annotations via the .add_sentence_annotation() method." )
+            self.add_sentence_annotation()
+            sentences=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'SENTENCE_TYPE' ] )   
+                
+        #sanity check: for every annotated sentence, there should be a list of named entities provided.
+        assert len( sentences ) ==len( named_entities_sentences ), "For every sentence (annotated via SENTENCE_TYPE) there should be exactly one list of detected named entities provided ( List[Named_entity])"
+        
+        for sentence, named_entities_sentence in zip( sentences, named_entities_sentences ):
+            
+            #for some sentences, it could be that no named_entities are found. I.e. List[Named_entity] is [].
+            if not named_entities_sentence:
+                continue
+                
+            for named_entity in named_entities_sentence:
+                self.cas.get_view(self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).add_annotation( \
+                 ner_type( begin=sentence.begin+named_entity[2], \
+                           end=sentence.begin+named_entity[3],\
+                           value=named_entity[0],\
+                           label=named_entity[1] ) )
+    
             
 def get_sentences_index( text:str )->List[ Tuple[ int, int ] ]:
     

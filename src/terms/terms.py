@@ -35,6 +35,9 @@ from spacy.tokens.doc import Doc
 import language_tool_python
 from language_tool_python.server import LanguageTool
 
+#type aliasing named entity, term_lemma
+from ..aliases import Named_entity, Term_lemma
+
 class TermExtractor():
     '''
     A TermExtractor. Extracts terms for various languages using a spacy model.
@@ -71,24 +74,27 @@ class TermExtractor():
             self._spellcheck_dict=self._load_spellcheckers()
         
         self._max_ngram=max_ngram
-    
-    
-    def get_terms( self, sentences: List[str], n_jobs:int=1, batch_size:int=32, language:str='en' )->List[Tuple[ str,str ]]:
+        
+    def get_terms_ner( self, sentences: List[str], n_jobs:int=1, batch_size:int=32, language:str='en' )->Tuple[ List[Term_lemma], List[List[Named_entity]] ]:
         '''
-        Function to extract terms from a given set of sentences.
+        Function to extract terms and named entities from a given set of sentences.
         
         :param sentences: List of strings. Sentences to process.
         :param n_jobs:int. Number of processers to use for Spacy.
         :param batch_size: int. Batch size used by the Spacy model.
         :param language: str. Language of the sentences.
-        :return List of Tuples containing the extracted terms and the corresponding lemma.
+        :return Tuple of Lists. First List contains the extracted terms and the corresponding lemma (Term_lemma). Second List contains a list of named entities (Named_entity) for each sentence.
         '''
         
         if language not in self._languages:
             raise ValueError( f"Language '{language}' not in list of loaded languages {self._languages}. Please initialize TermExtractor object with language '{language}'. Also please make sure language '{language}' is in the list of supported languages {self.SUPPORTED_LANGUAGES}." )
         
-        term_list=[]    
+        term_list=[]
+        ner_list=[]
         for doc in self._nlp_dict[ language ].pipe( sentences, n_process=n_jobs, batch_size=batch_size ):
+            #get the NER's
+            ner_list.append( self._ner_doc( doc ) )
+            
             #for each sentence, self._parse_doc returns a list of terms (List of spacy Span objects)
             term_list.extend( self._parse_doc( doc ) )
         
@@ -129,7 +135,7 @@ class TermExtractor():
             lemma=self._lemmatize( term )
             cleaned_term_list[i]=( term.text.strip(), lemma )
           
-        return cleaned_term_list
+        return cleaned_term_list, ner_list
 
 
     def _load_nlp_models( self )->Dict[ str, Union[ German, English, Dutch, French, Italian, Norwegian, UDPipeLanguage ] ]:
@@ -249,6 +255,41 @@ class TermExtractor():
                 terms.append( doc[token.left_edge.i: token.i + 1] )
 
         return terms
+    
+    
+    def _ner_doc( self, doc: Doc )->List[Named_entity ]:
+
+        '''
+        Extract named entities from a Spacy Doc.
+        
+        Assigned labels are:
+        PERSON:      People, including fictional.
+        NORP:        Nationalities or religious or political groups.
+        FAC:         Buildings, airports, highways, bridges, etc.
+        ORG:         Companies, agencies, institutions, etc.
+        GPE:         Countries, cities, states.
+        LOC:         Non-GPE locations, mountain ranges, bodies of water.
+        PRODUCT:     Objects, vehicles, foods, etc. (Not services.)
+        EVENT:       Named hurricanes, battles, wars, sports events, etc.
+        WORK_OF_ART: Titles of books, songs, etc.
+        LAW:         Named documents made into laws.
+        LANGUAGE:    Any named language.
+        DATE:        Absolute or relative dates or periods.
+        TIME:        Times smaller than a day.
+        PERCENT:     Percentage, including ”%“.
+        MONEY:       Monetary values, including unit.
+        QUANTITY:    Measurements, as of weight or distance.
+        ORDINAL:     “first”, “second”, etc.
+        CARDINAL:    Numerals that do not fall under another type.
+        
+        :param doc: Doc. Spacy Doc object.
+        :return: List. List of Named_entity's found in the sentence. Named_entity is the text, the label and the offsets (ent.start_char, ent.end_char) of the ne found. 
+        '''
+
+        ner=[]
+        for ent in doc.ents:
+            ner.append( ( ent.text, ent.label_, ent.start_char, ent.end_char  )  )
+        return ner
     
     
     def _front_cleaning( self, term:Span )->Union[ type(None), Span ]:

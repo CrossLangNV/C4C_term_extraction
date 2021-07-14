@@ -133,7 +133,7 @@ def test_add_token_annotation( text, tokens, offsets, this_annotation_adder, req
     annotation_adder=request.getfixturevalue( this_annotation_adder )
     annotation_adder.create_cas_from_text( text )
     assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
-    #need to add sentence annotations before we can add token annotations.
+    #add_token_annotation will add sentence annotations before adding token annotations.
     annotation_adder.add_token_annotation( terms_lemmas )
     token_pred=annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID']  ).select( config[ 'Annotation' ]['TOKEN_TYPE'] )
     token_pred_text=[ token.get_covered_text() for token in token_pred ]
