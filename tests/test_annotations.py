@@ -143,6 +143,36 @@ def test_add_token_annotation( text, tokens, offsets, this_annotation_adder, req
     
     
 @pytest.mark.parametrize(
+    "text, values, labels, offsets,this_annotation_adder",
+    [
+     ("This is the first sentence \n \n \t \n \n I've just watched the 'Eternal Sunshine of the Spotless Mind' and found it corny. \n \n \t",
+      ['first', "the 'Eternal Sunshine of the Spotless Mind'"],
+      ['ORDINAL', 'WORK_OF_ART'],
+      [(12, 17), (55, 98)],
+      "annotation_adder" ),
+    ]
+)
+def test_add_named_entity_annotation( text, values, labels, offsets, this_annotation_adder, request ):
+    
+    #the so called detected named entities for each sentence  ==> this should typically be obtained via a TermExtractor.
+    ner_list=[[('first', 'ORDINAL', 12, 17)], [("the 'Eternal Sunshine of the Spotless Mind'", 'WORK_OF_ART', 18, 61)]]
+        
+    annotation_adder=request.getfixturevalue( this_annotation_adder )
+    annotation_adder.create_cas_from_text( text )
+    assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
+    #add_token_annotation will add sentence annotations before adding token annotations.
+    annotation_adder.add_named_entity_annotation( ner_list )
+    #now check if the NER_TYPE annotations where set at the correct place.
+    ner_pred=annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).select( config[ 'Annotation' ]['NER_TYPE'] )
+    ner_pred_value=[ ner.value for ner in ner_pred ]
+    ner_pred_label=[ ner.label for ner in ner_pred ]
+    offsets_pred=[ (ner.begin, ner.end ) for ner in ner_pred ]
+    assert ner_pred_value == values
+    assert ner_pred_label == labels
+    assert offsets_pred == offsets
+    
+    
+@pytest.mark.parametrize(
     "text,sentence_indices",
     [
     ( "  this is a test  \n\n\n\n  \n test sentence \n test sentence \n \t \n tes\n test \ntest\ntest",
