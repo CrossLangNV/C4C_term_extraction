@@ -57,6 +57,12 @@ print( "Terms: \n" )
 for token in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'TOKEN_TYPE' ] ):
     print( token.get_covered_text() )
     print( token )
+    
+print( "Named entities: \n" )
+
+for ner in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'NER_TYPE' ] ):
+    print( ner.get_covered_text() )
+    print( ner )
 
 #2) send request with json file only for chunking.
 print( "\n" )

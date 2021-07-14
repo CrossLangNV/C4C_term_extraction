@@ -36,7 +36,9 @@ import language_tool_python
 from language_tool_python.server import LanguageTool
 
 #type aliasing named entity, term_lemma
+#from ..aliases import Named_entity, Term_lemma
 from ..aliases import Named_entity, Term_lemma
+
 
 class TermExtractor():
     '''

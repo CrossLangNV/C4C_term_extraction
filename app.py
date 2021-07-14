@@ -47,8 +47,10 @@ async def term_extraction(document: Document):
     annotation_adder.add_paragraph_annotation()
     sentences =  [sentence.get_covered_text() for \
                   sentence in annotation_adder.cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'SENTENCE_TYPE' ] )]
-    terms_lemmas,_=termextractor.get_terms_ner( sentences, language=document.language )
+    terms_lemmas, ner_list=termextractor.get_terms_ner( sentences, language=document.language )
     annotation_adder.add_token_annotation( terms_lemmas )
+    assert len( ner_list ) == len( sentences ), "For every sentence (annotated via SENTENCE_TYPE) there should be exactly one list of detected named entities provided ( List[Named_entity])"
+    annotation_adder.add_named_entity_annotation( ner_list )
     encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()   
     
     output_json={}

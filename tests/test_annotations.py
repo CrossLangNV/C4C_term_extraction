@@ -31,6 +31,10 @@ def annotation_adder():
 )
 def test_create_cas_from_text( text, this_annotation_adder, request ):
     
+    '''
+    Unit test for .create_cas_from_text(text)
+    '''
+    
     annotation_adder=request.getfixturevalue( this_annotation_adder )
     annotation_adder.create_cas_from_text( text )
     assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
@@ -58,6 +62,10 @@ def test_create_cas_from_text( text, this_annotation_adder, request ):
     ]
 )
 def test_add_sentence_annotation( text, sentences, offsets, this_annotation_adder, request ):
+    
+    '''
+    Unit test for .add_sentence_annotation().
+    '''
     
     annotation_adder=request.getfixturevalue( this_annotation_adder )
     annotation_adder.create_cas_from_text( text )
@@ -93,6 +101,10 @@ def test_add_sentence_annotation( text, sentences, offsets, this_annotation_adde
 )
 def test_add_paragraph_annotation( text, paragraphs, offsets, this_annotation_adder, request ):
     
+    '''
+    Unit test for .add_paragraph_annotation().
+    '''
+    
     annotation_adder=request.getfixturevalue( this_annotation_adder )
     annotation_adder.create_cas_from_text( text )
     assert annotation_adder.cas.get_view( config[ 'Annotation' ]['SOFA_ID'] ).sofa_string == text
@@ -127,6 +139,10 @@ def test_add_paragraph_annotation( text, paragraphs, offsets, this_annotation_ad
 )
 def test_add_token_annotation( text, tokens, offsets, this_annotation_adder, request ):
     
+    '''
+    Unit test for .add_token_annotation( terms_lemmas ).
+    '''
+    
     #the so called detected terms and lemmas ==> this should typically be obtained via a TermExtractor.
     terms_lemmas=[ ('this', 'this' ), ('a sentence', 'a sentence'  ), ('other', 'other' ), ( 'the', 'the' ), ( 't', 't' ) ]
     
@@ -153,6 +169,10 @@ def test_add_token_annotation( text, tokens, offsets, this_annotation_adder, req
     ]
 )
 def test_add_named_entity_annotation( text, values, labels, offsets, this_annotation_adder, request ):
+    
+    '''
+    Unit test for .add_named_entity_annotation().
+    '''
     
     #the so called detected named entities for each sentence  ==> this should typically be obtained via a TermExtractor.
     ner_list=[[('first', 'ORDINAL', 12, 17)], [("the 'Eternal Sunshine of the Spotless Mind'", 'WORK_OF_ART', 18, 61)]]
