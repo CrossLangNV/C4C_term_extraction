@@ -9,7 +9,7 @@ use "dcli.sh" to start a docker container
 
 At `localhost:5001/docs`, one should find the Swagger:
 
-![Swagger](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png)
+![swagger](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png?raw=true)
 
 
 ![overview](https://github.com/CrossLangNV/DGFISMA_paragraph_detection/blob/master/tests/test_files/images/par_detect.png?raw=true)
