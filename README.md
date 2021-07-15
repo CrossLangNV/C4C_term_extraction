@@ -44,6 +44,10 @@ The typesystem can be found at `media/typesystem.xml`
 
 The base64 encoded UIMA Cas returned by the POST request to `http://localhost:5001/chunking` will contain a SOFA_ID view, and SENTENCE_TYPE and PARAGRAPH_TYPE annotations (see `media/TermExtraction.config`). A POST request to `http://localhost:5001/extract_terms` will add the same annotations, but also the TOKEN_TYPE and NER_TYPE annotations (terms and named entiies, see below).
 
+## Example:
+
+In `user_scripts/send_request.py` we provide various examples for posting requests to the API. One can run `send_request.py` from the command line `python3 send_request.py`. Detected annotations will be printed to the screen.
+
 ## 1) Chunking
 
 Both sentences/segments and paragraphs are detected. For this the `text` posted is added as a Sofa to a Cas object at the SOFA_ID view. Next sentences are annotated in this view via the SENTENCE_TYPE, and paragraphs via the PARAGRAPH_TYPE annotation. For more details we refer to the source code, and in particular to `src/annotations/annotations.py`, and the `.add_sentence_annotation(self,  )` and `.add_paragraph_annotation(self, )` methods of the `AnnotationAdder` Class.
