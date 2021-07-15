@@ -6,7 +6,13 @@ Instructions
 use "dbuild.sh" to build the docker image <br />
 use "dcli.sh" to start a docker container
 
-Users can now send a json to `http://localhost:5001/extract_terms` or `http://localhost:5001/chunking`. The json should contain the fields `text` (regular text, e.g. output of Tika parser ) and `language`. The latter specifying which Spacy model to use. The following languages are supported: 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'.
+
+At `localhost:5001/docs`, one should find the Swagger:
+
+![overview](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png?raw=true)
+
+
+Now a json can be sent to `http://localhost:5001/extract_terms` or `http://localhost:5001/chunking`. The json should contain the fields `text` (regular text, e.g. output of Tika parser ) and `language`. The latter specifying which Spacy model to use. The following languages are supported: 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'.
 
 The json could for example look like this:
 
@@ -16,7 +22,7 @@ input_json['text']="This is some text \n This is some more text."
 input_json['language']="en"
 ```
 
-Both `http://localhost:5001/extract_terms` and `http://localhost:5001/chunking` will return a json containing a "cas_content" and the "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
+Both `http://localhost:5001/extract_terms` and `http://localhost:5001/chunking` will return a json containing a "cas_content" and "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
 
 In Python this base64 encoded UIMA CAS object can be decoded via:
 
@@ -36,6 +42,8 @@ with open(os.path.join('media', 'typesystem.xml'), 'rb') as f:
     
 cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
 ```
+
+The typesystem can be found at `media/typesystem.xml`
 
 The base64 encoded UIMA Cas returned by the POST request to `http://localhost:5001/chunking` will contain a SOFA_ID view, and SENTENCE_TYPE and PARAGRAPH_TYPE annotations (see `media/TermExtraction.config`). A POST request to `http://localhost:5001/extract_terms` will add the same annotations, but also the TOKEN_TYPE and NER_TYPE annotations (terms and named entiies, see below).
 
