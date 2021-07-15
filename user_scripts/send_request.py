@@ -93,7 +93,7 @@ print( "Paragraphs: \n" )
 for par in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ):
     print( par.get_covered_text(), "\n" )
 
-    
+
 #3) send request with json file with long text (result of tika parsing):
  
 text =open( "../user_scripts/example.txt" ).read()
