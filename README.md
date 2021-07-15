@@ -9,7 +9,10 @@ use "dcli.sh" to start a docker container
 
 At `localhost:5001/docs`, one should find the Swagger:
 
-![overview](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png?raw=true)
+![Swagger](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png)
+
+
+![overview](https://github.com/CrossLangNV/DGFISMA_paragraph_detection/blob/master/tests/test_files/images/par_detect.png?raw=true)
 
 
 Now a json can be sent to `http://localhost:5001/extract_terms` or `http://localhost:5001/chunking`. The json should contain the fields `text` (regular text, e.g. output of Tika parser ) and `language`. The latter specifying which Spacy model to use. The following languages are supported: 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'.
