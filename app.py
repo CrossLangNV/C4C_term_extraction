@@ -19,7 +19,9 @@ config.read( os.path.join( MEDIA_ROOT, 'TermExtraction.config' ))
 
 annotation_adder=AnnotationAdder( TYPESYSTEM, config )
 
-termextractor=TermExtractor( ['en', 'nl' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False )
+#all supported languages: [ 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr']
+
+termextractor=TermExtractor( [ 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'], max_ngram=10, remove_stopwords=True , use_spellcheck_tool=False )
 
 class Document(BaseModel):
     text: str

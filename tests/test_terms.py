@@ -62,7 +62,7 @@ def test_get_terms_ner_en():
       "" ]
     
     #initialize a TermExtractor object.
-    termextractor=TermExtractor( languages=[ 'en' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False  )
+    termextractor=TermExtractor( languages=[ 'en' ], max_ngram=10, remove_stopwords=True , use_spellcheck_tool=False  )
     pred_terms,pred_ners=termextractor.get_terms_ner( sentences, language='en' )
     
     true_terms= \
@@ -107,7 +107,7 @@ def test_get_terms_ner_de():
     sentences=[ 'Kredit-und Hypothekenkontoinhaber der Reichen müssen ihre Anträge stellen' ]
     
     #initialize a TermExtractor object.
-    termextractor=TermExtractor( languages=[ 'de' ], max_ngram=10, remove_terms_with_stopwords=False , use_spellcheck_tool=False  )
+    termextractor=TermExtractor( languages=[ 'de' ], max_ngram=10, remove_stopwords=True , use_spellcheck_tool=False  )
     pred_terms,pred_ners=termextractor.get_terms_ner( sentences, language='de' )
     
     true_terms= \
@@ -273,7 +273,7 @@ def test_parse_empty_doc( doc_example_empty_doc ):
     assert terms_true == terms_text_pred
     
 
-def test_ner_doc( doc_example_1 ):
+def test_ner_doc_1( doc_example_1 ):
     
     '''
     test _ner_doc method of TermExtractor class
@@ -291,7 +291,7 @@ def test_ner_doc( doc_example_1 ):
     assert ners_pred == ners_true
     
     
-def test_ner_doc( doc_example_2 ):
+def test_ner_doc_2( doc_example_2 ):
     
     '''
     test _ner_doc method of TermExtractor class
@@ -309,7 +309,7 @@ def test_ner_doc( doc_example_2 ):
     assert ners_pred == ners_true
     
     
-def test_ner_doc( doc_example_3 ):
+def test_ner_doc_3( doc_example_3 ):
     
     '''
     test _ner_doc method of TermExtractor class
@@ -322,12 +322,12 @@ def test_ner_doc( doc_example_3 ):
     
     ners_pred=termextractor._ner_doc( doc_example_3 )
     
-    ners_true=[]
+    ners_true=[('the City Of Monaco', 'GPE', 90, 108), ('Nice', 'GPE', 114, 118)] 
     
     assert ners_pred == ners_true
     
     
-def test_ner_doc( doc_example_empty_doc ):
+def test_ner_doc_empty_doc( doc_example_empty_doc ):
     
     '''
     test _ner_doc method of TermExtractor class
@@ -463,31 +463,31 @@ def test_length_conform(doc_example_2 ):
     assert true_conform == pred_conform
 
 
-def test_term_does_not_contain_stopword(doc_example_1 ):
+def test_term_is_not_stopword(doc_example_1 ):
     
     '''
-    test _term_does_not_contain_stopword method of TermExtractor class
+    test _term_is_not_stopword method of TermExtractor class
     '''
     
     assert type( doc_example_1  ) == Doc
     
-    term_spans=[doc_example_1[:3],doc_example_1[:1] ]
+    term_spans=[doc_example_1[1:2],doc_example_1[:1] ]
 
     assert type( term_spans[0] )== Span
     assert type( term_spans[1] )== Span
     
     #check that we took the correct n-gram
-    assert term_spans[0].text == 'Credit and mortgage'  #this one does contain a stopword
+    assert term_spans[0].text == 'and'  #this one is a stopword
     assert term_spans[1].text == 'Credit' #this one does not contain a stopword
 
     #load an empty TermExtractor ( i.e. without 'any' 'languages' )
-    termextractor=TermExtractor( languages=[ 'en' ], remove_terms_with_stopwords=True  )
+    termextractor=TermExtractor( languages=[ 'en' ], remove_stopwords=True  )
     
     true_stopwords=[ False, True ]
     
     pred_stopwords=[]
     for term_span in term_spans:
-        pred_stopwords.append(termextractor._term_does_not_contain_stopword( term_span, 'en' )  )
+        pred_stopwords.append(termextractor._term_is_not_stopword( term_span, 'en' )  )
         
     assert true_stopwords == pred_stopwords
     

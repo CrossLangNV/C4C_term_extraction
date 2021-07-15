@@ -36,7 +36,6 @@ import language_tool_python
 from language_tool_python.server import LanguageTool
 
 #type aliasing named entity, term_lemma
-#from ..aliases import Named_entity, Term_lemma
 from ..aliases import Named_entity, Term_lemma
 
 
@@ -51,11 +50,11 @@ class TermExtractor():
     
     PUNCTUATION_AND_DIGITS = string.punctuation.replace('-', '0123456789').replace('\'', '')+"\t" 
 
-    def __init__( self, languages:List[str], max_ngram:int=10, remove_terms_with_stopwords:bool=False , use_spellcheck_tool:bool=False ):
+    def __init__( self, languages:List[str], max_ngram:int=10, remove_stopwords:bool=True , use_spellcheck_tool:bool=False ):
         '''
         :param languages: List of Strings. Languages to load.
         :param max_ngram: int. Maximum length of the ngram (i.e. max numer of tokens in the ngram).
-        :param remove_terms_with_stopwords: bool. Whether to remove (multi-word) terms that contain stopwords.
+        :param remove_stopwords: bool. Whether to remove terms that are stopwords.
         :param use_spellcheck_tool: bool. Whether to use the spellcheck tool.
         '''
         
@@ -63,9 +62,9 @@ class TermExtractor():
         
         self._nlp_dict=self._load_nlp_models( )
         
-        self._remove_terms_with_stopwords=remove_terms_with_stopwords
+        self._remove_stopwords=remove_stopwords
         
-        if self._remove_terms_with_stopwords:
+        if self._remove_stopwords:
         
             self._stopwords_dict=self._load_stopwords()
         
@@ -117,8 +116,8 @@ class TermExtractor():
                 continue
             if not self._length_is_conform( term ):
                 continue
-            if self._remove_terms_with_stopwords:
-                if not self._term_does_not_contain_stopword( term, language ):
+            if self._remove_stopwords:
+                if not self._term_is_not_stopword( term, language ):
                     continue
         
             #append valid terms to the cleaned term list.
@@ -373,19 +372,19 @@ class TermExtractor():
             return False
         
 
-    def _term_does_not_contain_stopword( self, term:Span, language:str )->bool:
+    def _term_is_not_stopword( self, term:Span, language:str )->bool:
         '''
-        Check if term does not contain a stopword. If it does contain a stopword, return True, else False. Use loaded stopword list for this.
+        Check if term does is not a stopword. If it is a stopword, return False, else True. Use loaded stopword list for this.
         
         :param term: Span.
         :param language: String. Language, for stopword list.
         :return bool.
         '''
     
-        for item in term:
-            if item.text in self._stopwords_dict[ language ]:
-                return False
+        if term.text.lower() in self._stopwords_dict[ language ]:
+            return False
         return True
+
     
     def _spellcheck( self, terms:List[Span], language:str )-> List[Span]:
         '''

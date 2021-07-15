@@ -92,3 +92,48 @@ print( "Paragraphs: \n" )
 
 for par in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ):
     print( par.get_covered_text(), "\n" )
+
+    
+#3) send request with json file with long text (result of tika parsing):
+ 
+text =open( "../user_scripts/example.txt" ).read()
+
+input_json = {}
+input_json['text']=text
+input_json['language']="nl"
+
+r = requests.post(  "http://localhost:5001/extract_terms" , json=input_json )
+
+response_json=json.loads( r.content )
+
+decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
+
+cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
+
+print( "Sofa string:\n" )
+
+print(cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).sofa_string )
+
+print( "\n" )
+
+print( "Sentences: \n" )
+
+for sentence in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'SENTENCE_TYPE' ] ):
+    print( sentence.get_covered_text(), "\n" )
+
+print( "Paragraphs: \n" )
+
+for par in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ):
+    print( par.get_covered_text(), "\n" )
+    
+print( "Terms: \n" )
+
+for token in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'TOKEN_TYPE' ] ):
+    print( token.get_covered_text() )
+    print( token )
+    
+print( "Named entities: \n" )
+
+for ner in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'NER_TYPE' ] ):
+    print( ner.get_covered_text() )
+    print( ner )
