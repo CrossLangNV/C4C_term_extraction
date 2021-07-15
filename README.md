@@ -1,4 +1,4 @@
-# c4 Term extraction and named entity recognition
+# C4C Term extraction and named entity recognition
 
 Instructions
 ------------
