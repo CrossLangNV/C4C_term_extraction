@@ -20,6 +20,7 @@ WORKDIR /work
 COPY app.py /work
 COPY src/annotations /work/src/annotations
 COPY src/terms/ /work/src/terms
+COPY src/cleaning /work/src/cleaning
 COPY src/aliases.py /work/src/
 
 COPY media/TermExtraction.config /work/media/

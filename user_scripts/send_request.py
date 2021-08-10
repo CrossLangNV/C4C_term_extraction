@@ -22,10 +22,12 @@ print( "\n" )
 print( "FIRST EXAMPLE" )
 print( "\n" )
 
-test_text="This the first test sentence. And this is the second. \n Another sentence \n\n Now we start another paragraph \n\n\n\n \t This is the third paragraph.\n\n"
+#test_text="This the first test sentence. And this is the second. \n Another sentence \n\n Now we start another paragraph \n\n\n\n \t This is the third paragraph.\n\n"
+
+test_html='<title>The title </title><p>This the first test sentence.</p><p> And this is the second.</p><p> Another sentence </p><p> Now we start another paragraph </p><p>This is the third paragraph.</p>'
 
 input_json = {}
-input_json['text']=test_text
+input_json['html']=test_html
 input_json['language']="en"
 
 r = requests.post(  "http://localhost:5001/extract_terms" , json=input_json )
@@ -96,11 +98,17 @@ for par in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ '
 
 #3) send request with json file with long text (result of tika parsing):
  
-text =open( "../user_scripts/example.txt" ).read()
+test_html =open( "../user_scripts/Aangifte geboorte - Stad Eeklo.html" ).read()
 
-input_json = {}
-input_json['text']=text
-input_json['language']="nl"
+input_json={}
+input_json[ 'html' ] = test_html
+input_json[  'language' ] = 'nl'
+
+#with open("../user_scripts/Aangifte geboorte - Stad Eeklo.json", 'w') as json_file:
+#    json.dump(input_json, json_file)
+
+#input_json=open( "../user_scripts/Aangifte geboorte - Stad Eeklo.json", 'r' ).read()
+#input_json=json.loads( input_json )
 
 r = requests.post(  "http://localhost:5001/extract_terms" , json=input_json )
 
