@@ -62,7 +62,7 @@ In `user_scripts/send_request.py` we provide various examples for posting reques
 
 ## 1) Chunking
 
-Both sentences/segments are detected. For this the posted `html` is processed by the `trafilatura` library, and the extracted text is added as a Sofa to a Cas object at the SOFA_ID view. Next sentences are annotated in this view via the SENTENCE_TYPE annotation. For more details we refer to the source code, and in particular to `src/annotations/annotations.py`, and the `.add_sentence_annotation(self,  )` method of the `AnnotationAdder` Class.
+Sentences/segments are detected. For this the posted `html` is processed by the `trafilatura` library, and the extracted text is added as a Sofa to a Cas object at the SOFA_ID view. Next sentences are annotated in this view via the SENTENCE_TYPE annotation. For more details we refer to the source code, and in particular to `src/annotations/annotations.py`, and the `.add_sentence_annotation(self,  )` method of the `AnnotationAdder` Class.
 
 ## 2) Term extraction
 
