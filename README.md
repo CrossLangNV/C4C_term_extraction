@@ -15,7 +15,7 @@ The json could for example look like this:
 
 ```
 input_json={}
-input_json['text']="This is some text \n This is some more text."
+input_json['html']="This is some text \n This is some more text."
 input_json['language']="en"
 ```
 
