@@ -25,7 +25,6 @@ annotation_adder=AnnotationAdder( TYPESYSTEM, config )
 
 termextractor=TermExtractor( [ 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'], max_ngram=10, remove_stopwords=True , use_spellcheck_tool=False )
 
-
 class Document(BaseModel):
     html: str
     language:Union[str,type(None)]
