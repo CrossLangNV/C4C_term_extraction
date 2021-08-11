@@ -39,7 +39,7 @@ def create_output_json( document:Document ):
     #Extract text from html (i.e. without boilerplate sections such as headers...) using trafilatura library.
     #When document.language!=None, then document.html in other language than document.language will be ignored.
     json_trafilatura=get_json_trafilatura( document.html, target_language=document.language )
-    if 'title' in json_trafilatura:
+    if 'title' in json_trafilatura: #i.e. title tag from html, extracted via BeautifulSoup
         output_json[ 'title' ]=json_trafilatura['title']
     else:
         output_json[ 'title' ]=None
@@ -55,7 +55,18 @@ def create_output_json( document:Document ):
         output_json[ 'text' ]=json_trafilatura['text']
     else:
         output_json[ 'text' ]=''
-        
+    if 'hostname' in json_trafilatura: #e.g. eeklo.be
+        output_json[ 'hostname' ]=json_trafilatura['hostname']
+    else:
+        output_json[ 'hostname' ]=''
+    if 'source-hostname' in json_trafilatura: #e.g Stad Eeklo
+        output_json[ 'source-hostname' ]=json_trafilatura['source-hostname']
+    else:
+        output_json[ 'source-hostname' ]=''
+    if 'source' in json_trafilatura:  #e.g. https://www.eeklo.be/aangifte-geboorte'
+        output_json[ 'source' ]=json_trafilatura['source']
+    else:
+        output_json[ 'source' ]=''        
     output_json[ 'language' ]=document.language
 
     return output_json

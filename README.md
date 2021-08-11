@@ -31,9 +31,9 @@ input_json['language']=""
 
 if `http://localhost:5001/chunking` is used, and one is not interested in extracting text from webpages in a specific language.
 
-Both `http://localhost:5001/extract_terms` and `http://localhost:5001/chunking` will return a json containing a "title", "tags", "excerpt", "text", "cas_content" and "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
+Both `http://localhost:5001/extract_terms` and `http://localhost:5001/chunking` will return a json containing a "title", "tags", "excerpt", "text", "hostname", "source-hostname", "source", "cas_content" and "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
 
-In Python this base64 encoded UIMA CAS object can be decoded via:
+In Python the base64 encoded UIMA CAS object (in the "cas_content" field) can be decoded via:
 
 ```
 import base64
@@ -126,4 +126,3 @@ Using the above Spacy models, named entities are extracted. They are assigned on
         CARDINAL:    Numerals that do not fall under another type.
 
 Detected named entities are added as a NER_TYPE annotation to the SOFA_ID view.
-

@@ -96,7 +96,7 @@ for par in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ '
     print( par.get_covered_text(), "\n" )
 
 
-#3) send request with json file with long text (result of tika parsing):
+#3) send request with json file with long html:
  
 test_html =open( "../user_scripts/Aangifte geboorte - Stad Eeklo.html" ).read()
 
