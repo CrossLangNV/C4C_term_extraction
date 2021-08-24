@@ -10,12 +10,24 @@ from cassis.typesystem import load_typesystem
 from src.terms.terms import TermExtractor
 from src.annotations.annotations import AnnotationAdder
 from src.cleaning.cleaning_trafilatura import get_json_trafilatura
+from src.cleaning.cleaning_tika import get_text_tika
 
+from src.sentence_classification.trainer_bert_sequence_classifier import TrainerBertSequenceClassifier
+
+#path to the model for sentence classification:
+PATH_MODEL="/work/models"
+#path to the media folder ( typesystem and config file with names of the annotations )
 MEDIA_ROOT="media"
+
+#load the model for sentence classification
+trainer_bert_sequence_classifier=\
+    TrainerBertSequenceClassifier( \
+    pretrained_model_name_or_path= path_model, model_type='DISTILBERT' )
 
 with open( os.path.join( MEDIA_ROOT, 'typesystem.xml' )  , 'rb') as f:
     TYPESYSTEM = load_typesystem(f)
     
+#Load config file with the annotations
 config = configparser.ConfigParser()
 config.read( os.path.join( MEDIA_ROOT, 'TermExtraction.config' ))
     
@@ -111,3 +123,24 @@ async def term_extraction(document: Document):
     output_json[ 'cas_content' ]=encoded_cas
     
     return output_json
+
+@app.post("/extract_contact_info")
+async def term_extraction(document: Document):
+    
+    output_json={}
+    
+    #parse html input with tika:
+    text=get_text_tika( document.html )
+    output_json[ 'text' ]=text
+    
+    annotation_adder.create_cas_from_text( output_json['text'] )
+    #add paragraphs to be send to sentence classifier for contact info classification ( DISTILBERT sequence classifier )
+    annotation_adder.add_paragraph_annotation()
+    
+    paragraphs_text=[]
+    for par in annotation_adder.cas.get_view( 'html2textView' ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ):
+        paragraphs_text.append( par.get_covered_text().replace(  "\n", " " ).replace( "\t", " "  ).strip() )
+    
+    pred_labels, _ = trainer_bert_sequence_classifier.predict( paragraphs_text  )
+    
+    
