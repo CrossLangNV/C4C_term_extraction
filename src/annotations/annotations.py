@@ -99,7 +99,7 @@ class AnnotationAdder():
                         
         paragraph_type=self._typesystem.get_type( self._config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] )
 
-        #check if cas object already contains sentence annotations. If so remove them first
+        #check if cas object already contains paragraph annotations. If so remove them first
         paragraph_annotations=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).select( self._config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] )
         
         if paragraph_annotations:
@@ -204,8 +204,99 @@ class AnnotationAdder():
                            end=sentence.begin+named_entity[3],\
                            value=named_entity[0],\
                            label=named_entity[1] ) )
-    
+                
+                
+    def add_contact_annotation( self ):
+        
+        '''
+        Method to read paragraphs from the cas, check if the divType is labeled as 'contact' by the sentence classifier. Merge consecutive such 'contact' paragraph, and annotate them with the 'CONTACT_PARAGRAPH_TYPE' type. 
+        
+        :param named_entities_sentences: List of List of Named_entity.
+        '''
+
+        #first check if AnnotationAdder contains _cas object:
+        if not hasattr( self, 'cas' ):
+            raise AttributeError( "AnnotationAdder should contain 'cas' attribute. Please create 'cas' attribute from text via the self.create_cas_from_text method(text), before using the self.add_sentence_annotation() method" )
+        
+        contact_paragraph_type=self._typesystem.get_type(  self._config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] )
+
+        #check if cas object already contains contact_paragraph annotations. If so remove them first
+        contact_paragraph_annotations=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).select( self._config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] )
+        
+        if contact_paragraph_annotations:
+            print( "self.cas already contains CONTACT_PARAGRAPH_TYPE annotations. Removing these annotations, before adding new ones." )
+            for contact_paragraph_annotations in contact_paragraph_annotations:
+                self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).remove_annotation( contact_paragraph_annotations )
             
+        #Get the paragraphs:
+        paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ]  )
+    
+        #Now check if the paragraph is labeled as contact by the sentence classifier for contact detection. 
+        #If so merge them if they are consecutive, and annotate with 'contact_paragraph_type' annotation.
+        in_contact=False
+        for i,par in enumerate(paragraphs):
+            #start of new 'contact' section
+            if par.divType == 'contact':
+                if in_contact == False:
+                    begin_index=par.begin
+                    in_contact=True
+                previous_contact_par=par
+
+            if in_contact and par.divType!='contact':
+                end_index=previous_contact_par.end
+                in_contact=False
+                #get the cleaned text (removal of newlines)
+                contact_paragraph_text=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).sofa_string[ begin_index:end_index ]
+                contact_paragraph_text="\n".join([ sentence.strip() for sentence in contact_paragraph_text.split( "\n" ) if sentence.strip()] )
+                #add annotation
+                self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).add_annotation( \
+                contact_paragraph_type( begin = begin_index, end=end_index, divType='contact', content=contact_paragraph_text ) )
+
+            #special case when last paragraph in the cas is a contact
+            if i==len( paragraphs )-1 and par.divType=='contact':
+                end_index=par.end
+                #get the cleaned text (removal of newlines)
+                contact_paragraph_text=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).sofa_string[ begin_index:end_index ]
+                contact_paragraph_text="\n".join([ sentence.strip() for sentence in contact_paragraph_text.split( "\n" ) if sentence.strip()] )
+                #add_annotation
+                self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).add_annotation( \
+                contact_paragraph_type( begin = begin_index, end=end_index, divType='contact', content=contact_paragraph_text ) )
+                
+                
+    def add_context(self, root_type='CONTACT_PARAGRAPH_TYPE' , type_to_add='PARAGRAPH_TYPE' ):
+        
+        contact_paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ root_type ]  )
+        paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]).select( self._config[ 'Annotation' ][ type_to_add ]  )
+        
+        for contact_paragraph in contact_paragraphs:
+            covered_paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select_covered( self._config[ 'Annotation' ][ type_to_add ], contact_paragraph)
+            
+            if not covered_paragraphs:
+                continue
+            
+            xmiID_begin=covered_paragraphs[0].xmiID
+            xmiID_end=covered_paragraphs[-1].xmiID
+            
+            text=''
+            for par in paragraphs:
+                #add the paragraph preceding the contact paragraph as context
+                if par.xmiID==xmiID_begin -1:
+                    text=par.get_covered_text() + '\n'+ contact_paragraph.content
+
+                #add the paragraph following the contact paragraph as context
+                if par.xmiID==xmiID_end+1:
+                    #case where we already prepended context to contact_paragraph.content
+                    if text:
+                        text=text + "\n" + par.get_covered_text()
+                    #case where we did not already prepended context to contact_paragraph.content
+                    else:
+                        text=contact_paragraph.content + "\n" + par.get_covered_text()
+
+                text="\n".join([ sentence.strip() for sentence in text.split( "\n" ) if sentence.strip()] )
+
+            contact_paragraph.content_context=text.strip()  #the strip is probably not necessary..
+            
+    
 def get_sentences_index( text:str )->List[ Tuple[ int, int ] ]:
     
     '''
