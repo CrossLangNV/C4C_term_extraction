@@ -158,9 +158,10 @@ async def contact_info_extraction(document: Document):
         if label == 1:
             par.divType='contact'
             par.content=par.get_covered_text().strip()
-            
-    annotation_adder.add_contact_annotation()
-    #add context to 'CONTACT_PARAGRAPH_TYPE'
+    
+    #merge consecutive PARAGRAPH_TYPE annotations into the 'CONTACT_PARAGRAPH_TYPE' annotation,
+    annotation_adder.add_contact_annotation( label='contact' )
+    #add context (i.e. preceding and appending SENTENCE_TYPE annotations) to content_context attribute of the 'CONTACT_PARAGRAPH_TYPE' features.
     annotation_adder.add_context( root_type='CONTACT_PARAGRAPH_TYPE' , type_to_add='SENTENCE_TYPE' )  
     
     encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()   
