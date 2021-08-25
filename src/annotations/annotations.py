@@ -263,13 +263,20 @@ class AnnotationAdder():
                 contact_paragraph_type( begin = begin_index, end=end_index, divType='contact', content=contact_paragraph_text ) )
                 
                 
-    def add_context(self, root_type='CONTACT_PARAGRAPH_TYPE' , type_to_add='PARAGRAPH_TYPE' ):
+    def add_context(self, root_type:str='CONTACT_PARAGRAPH_TYPE' , type_to_add:str='SENTENCE_TYPE' ):
+        
+        '''
+        Method to add context to root_type annotation. Method will get the covered type_to_add annotations that are covered by the root type, get the previous, and nex annotation of type_to_add type, and add the text they cover to the .content attribute of root_type annotation as .content_context attribute of the feature type.
+        
+        :param root_type: String.
+        :param type_to_add: String.
+        '''
         
         contact_paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ root_type ]  )
         paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]).select( self._config[ 'Annotation' ][ type_to_add ]  )
         
         for contact_paragraph in contact_paragraphs:
-            covered_paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select_covered( self._config[ 'Annotation' ][ type_to_add ], contact_paragraph)
+            covered_paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select_covered( self._config[ 'Annotation' ][ type_to_add ], contact_paragraph )
             
             if not covered_paragraphs:
                 continue

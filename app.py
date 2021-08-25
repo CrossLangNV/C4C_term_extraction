@@ -125,7 +125,7 @@ async def term_extraction(document: Document):
     return output_json
 
 @app.post("/extract_contact_info")
-async def term_extraction(document: Document):
+async def contact_info_extraction(document: Document):
     
     output_json={}
     
@@ -136,11 +136,32 @@ async def term_extraction(document: Document):
     annotation_adder.create_cas_from_text( output_json['text'] )
     #add paragraphs to be send to sentence classifier for contact info classification ( DISTILBERT sequence classifier )
     annotation_adder.add_paragraph_annotation()
+    #add sentences
+    annotation_adder.add_sentence_annotation()
+    
+    paragraphs=list( annotation_adder.cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ) )
     
     paragraphs_text=[]
-    for par in annotation_adder.cas.get_view( 'html2textView' ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ):
+    for par in paragraphs:
         paragraphs_text.append( par.get_covered_text().replace(  "\n", " " ).replace( "\t", " "  ).strip() )
     
+    #sanity check
+    assert len( paragraphs ) == len( paragraphs_text )
+    
+    #TO DO: need to check what happens if no paragraphs available (i.e. if paragraphs_text=[])
     pred_labels, _ = trainer_bert_sequence_classifier.predict( paragraphs_text  )
     
+    #sanity check
+    assert len( pred_labels ) == len( paragraphs_text )
+
+    for label, par in zip( pred_labels, paragraphs ):
+        if label == 1:
+            par.divType='contact'
+            par.content=par.get_covered_text().strip()
+            
+    annotation_adder.add_contact_annotation()
+    #add context to 'CONTACT_PARAGRAPH_TYPE'
+    annotation_adder.add_context( root_type='CONTACT_PARAGRAPH_TYPE' , type_to_add='SENTENCE_TYPE' )  
     
+    encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()   
+    output_json[ 'cas_content' ]=encoded_cas
