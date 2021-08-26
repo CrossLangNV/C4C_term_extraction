@@ -91,7 +91,6 @@ async def chunk(document: Document):
     #now add sentence annotations:
     annotation_adder.create_cas_from_text( output_json['text'] )
     annotation_adder.add_sentence_annotation()
-    #annotation_adder.add_paragraph_annotation()
     encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()
     
     output_json[ 'cas_content' ]=encoded_cas
@@ -110,7 +109,6 @@ async def term_extraction(document: Document):
     #now add sentence annotations:
     annotation_adder.create_cas_from_text( output_json['text'] )
     annotation_adder.add_sentence_annotation()
-    #annotation_adder.add_paragraph_annotation()
     sentences =  [ sentence.get_covered_text() for \
                   sentence in annotation_adder.cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'SENTENCE_TYPE' ] ) ]
     terms_lemmas, ner_list=termextractor.get_terms_ner( sentences, language=document.language )
@@ -135,7 +133,7 @@ async def contact_info_extraction(document: Document):
     
     annotation_adder.create_cas_from_text( output_json['text'] )
     #add paragraphs to be send to sentence classifier for contact info classification ( DISTILBERT sequence classifier )
-    annotation_adder.add_paragraph_annotation()
+    annotation_adder.add_paragraph_annotation( parsing_method='tika' )
     #add sentences
     annotation_adder.add_sentence_annotation()
     
@@ -149,7 +147,6 @@ async def contact_info_extraction(document: Document):
     #sanity check
     assert len( paragraphs ) == len( paragraphs_text )
     
-    #TO DO: need to check what happens if no paragraphs available (i.e. if paragraphs_text=[])
     pred_labels, _ = trainer_bert_sequence_classifier.predict( paragraphs_text  )
     
     #sanity check
