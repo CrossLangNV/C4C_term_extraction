@@ -1,5 +1,4 @@
-#FROM tiangolo/uvicorn-gunicorn:python3.8
-FROM nvidia/cuda:10.1-cudnn8-runtime-ubuntu18.04#
+FROM nvidia/cuda:10.1-cudnn8-runtime-ubuntu18.04
 
 ARG MODEL_DIR
 

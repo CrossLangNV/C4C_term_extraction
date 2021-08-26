@@ -20,6 +20,10 @@ def get_text_tika( html:str )->str:
     with tempfile.NamedTemporaryFile( mode='w+t' ) as temp:
         temp.write( html )
         text=tikaToText(  temp.name )
+    
+    if text==None:
+        print( "Could not extract text from input html" )
+        text=''
     return text
 
 def tikaToText(path_file ):

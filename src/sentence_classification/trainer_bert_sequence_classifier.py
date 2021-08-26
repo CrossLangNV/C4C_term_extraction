@@ -22,8 +22,8 @@ from sklearn.model_selection import train_test_split
 from skmultilearn.model_selection import iterative_train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 
-from read_data import read_split, read_base64_multi_class_tsv, read_base64_multi_label_tsv
-from utils import clean_text, get_sample_weights_multi_class, get_sample_weights_multi_label
+from .read_data import read_split, read_base64_multi_class_tsv, read_base64_multi_label_tsv
+from .utils import clean_text, get_sample_weights_multi_class, get_sample_weights_multi_label
 
 class PyTorchDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels=None, classification_type:str='multi_class' ):

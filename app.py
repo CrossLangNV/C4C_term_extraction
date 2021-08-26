@@ -22,7 +22,7 @@ MEDIA_ROOT="media"
 #load the model for sentence classification
 trainer_bert_sequence_classifier=\
     TrainerBertSequenceClassifier( \
-    pretrained_model_name_or_path= path_model, model_type='DISTILBERT' )
+    pretrained_model_name_or_path= PATH_MODEL, model_type='DISTILBERT' )
 
 with open( os.path.join( MEDIA_ROOT, 'typesystem.xml' )  , 'rb') as f:
     TYPESYSTEM = load_typesystem(f)
@@ -42,7 +42,6 @@ class Document(BaseModel):
     language:Union[str,type(None)]
 
 app=FastAPI()
-
 
 def create_output_json( document:Document ):
     
@@ -124,6 +123,7 @@ async def term_extraction(document: Document):
     
     return output_json
 
+
 @app.post("/extract_contact_info")
 async def contact_info_extraction(document: Document):
     
@@ -139,6 +139,7 @@ async def contact_info_extraction(document: Document):
     #add sentences
     annotation_adder.add_sentence_annotation()
     
+    paragraphs=[]
     paragraphs=list( annotation_adder.cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ] ) )
     
     paragraphs_text=[]
@@ -166,3 +167,6 @@ async def contact_info_extraction(document: Document):
     
     encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()   
     output_json[ 'cas_content' ]=encoded_cas
+    output_json[ 'language' ]=document.language
+    
+    return output_json

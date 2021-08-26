@@ -1,4 +1,3 @@
-#FROM tiangolo/uvicorn-gunicorn:python3.8
 FROM nvidia/cuda:10.1-cudnn8-runtime-ubuntu18.04
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8

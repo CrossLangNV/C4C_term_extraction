@@ -145,3 +145,59 @@ print( "Named entities: \n" )
 for ner in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'NER_TYPE' ] ):
     print( ner.get_covered_text() )
     print( ner )
+    
+
+#4) a) send request to 'extract_contact_info'
+    
+test_html =open( "../user_scripts/Aangifte geboorte - Stad Eeklo.html" ).read()
+
+input_json={}
+input_json[ 'html' ] = test_html
+input_json[  'language' ] = 'nl'
+
+r = requests.post(  "http://localhost:5001/extract_contact_info" , json=input_json )
+
+response_json=json.loads( r.content )
+
+decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
+
+cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
+
+for par_contact in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] ):
+    print( "NEW" )
+    print( par_contact.content )
+    print( "\n" )
+    #print( "WITH CONTEXT" )
+    #print( par_contact.content_context )
+    #print( "\n" )
+    
+#4) b) send request to 'extract_contact_info'
+
+test_html=open( "BECI - Kamer van Koophandel & Verbond van Ondernemingen te Brussel.html" ).read()
+
+input_json={}
+input_json[ 'html' ] = test_html
+input_json[  'language' ] = 'nl'
+
+import time
+start=time.time()
+r = requests.post(  "http://localhost:5001/extract_contact_info" , json=input_json )
+end=time.time()
+print(  end-start )
+
+response_json=json.loads( r.content )
+
+decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
+
+cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
+
+for par_contact in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] ):
+    print( "NEW" )
+    print( par_contact.content )
+    print( "\n" )
+    #print( "WITH CONTEXT" )
+    #print( par_contact.content_context )
+    #print( "\n" )
+    
+#for sentence in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'SENTENCE_TYPE' ] ):
+#    print( sentence.get_covered_text() )
