@@ -1924,6 +1924,23 @@
             </features>
         </typeDescription>
         <typeDescription>
+            <name>de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.QuestionParagraph</name>
+            <description/>
+            <supertypeName>de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Div</supertypeName>
+            <features>
+                <featureDescription>
+                    <name>content</name>
+                    <description/>
+                    <rangeTypeName>uima.cas.String</rangeTypeName>
+                </featureDescription>
+                <featureDescription>
+                    <name>content_context</name>
+                    <description/>
+                    <rangeTypeName>uima.cas.String</rangeTypeName>
+                </featureDescription>
+            </features>
+        </typeDescription>
+        <typeDescription>
             <name>de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Paragraph_user</name>
             <description/>
             <supertypeName>de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Div</supertypeName>

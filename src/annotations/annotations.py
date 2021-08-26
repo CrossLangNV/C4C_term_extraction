@@ -214,10 +214,10 @@ class AnnotationAdder():
                            label=named_entity[1] ) )
                 
                 
-    def add_contact_annotation( self, label='contact' ):
+    def add_contact_annotation( self, label='contact', root_type:str='PARAGRAPH_TYPE', merge_type:str='CONTACT_PARAGRAPH_TYPE'   ):
         
         '''
-        Method to read paragraphs from the cas, check if the divType is labeled as 'contact' by the sentence classifier. Merge consecutive such 'contact' paragraph, and annotate them with the 'CONTACT_PARAGRAPH_TYPE' type. 
+        Method to read paragraphs from the cas, check if the divType is labeled as label ( 'contact' ) by the sentence classifier. Merge consecutive such 'contact' paragraph, and annotate them with the 'CONTACT_PARAGRAPH_TYPE' ('merge_type') type. 
         
         :param named_entities_sentences: List of List of Named_entity.
         '''
@@ -226,10 +226,10 @@ class AnnotationAdder():
         if not hasattr( self, 'cas' ):
             raise AttributeError( "AnnotationAdder should contain 'cas' attribute. Please create 'cas' attribute from text via the self.create_cas_from_text method(text), before using the self.add_sentence_annotation() method" )
         
-        contact_paragraph_type=self._typesystem.get_type(  self._config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] )
+        contact_paragraph_type=self._typesystem.get_type(  self._config[ 'Annotation' ][ merge_type ] )
 
         #check if cas object already contains contact_paragraph annotations. If so remove them first
-        contact_paragraph_annotations=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).select( self._config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] )
+        contact_paragraph_annotations=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).select( self._config[ 'Annotation' ][ merge_type ] )
         
         if contact_paragraph_annotations:
             print( "self.cas already contains CONTACT_PARAGRAPH_TYPE annotations. Removing these annotations, before adding new ones." )
@@ -237,7 +237,7 @@ class AnnotationAdder():
                 self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).remove_annotation( contact_paragraph_annotations )
             
         #Get the paragraphs:
-        paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ]  )
+        paragraphs=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ] ).select( self._config[ 'Annotation' ][ root_type ]  )
     
         #Now check if the paragraph is labeled as contact by the sentence classifier for contact detection. 
         #If so merge them if they are consecutive, and annotate with 'contact_paragraph_type' annotation.
