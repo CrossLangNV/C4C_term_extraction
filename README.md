@@ -166,3 +166,13 @@ Using the above Spacy models, named entities are extracted. They are assigned on
         CARDINAL:    Numerals that do not fall under another type.
 
 Detected named entities are added as a NER_TYPE annotation to the SOFA_ID view.
+
+## 4) Contact Info Detection
+
+Using a finetuned DistilBert model, paragraphs containing contact info are detected. We refer to the release file for training data ( processed_training_data_adress_detection.zip, we refer to the .tsv file), and for a model trained on this training data. We refer to `notebooks/3_train_classifier_bert_pytorch.ipynb` for a notebook showing how to train a model on this training data.
+
+Note that for this task we use the [apache tika](https://tika.apache.org/) library for extraction of text from html, because many contact info can be found in headers and footers that would be removed by [trafilatura](https://github.com/adbar/trafilatura).
+
+## 5) Question answer pair detection
+
+Questions are detected in text using simple rules, and paragraphs following these questions are appended as context (i.e. paragraphs possibly containing the answer to the questions).
