@@ -4,10 +4,9 @@ DATA/
 MODELS/
 notebooks/*
 
-!notebooks/1_translate_annotated_data.ipynb
 !notebooks/2_generate_tsv_file_for_training.ipynb
 !notebooks/3_train_classifier_bert_pytorch.ipynb
-!notebooks/3_train_classifier_fasttext.ipynb
+!notebooks/4_train_classifier_fasttext.ipynb
 
 #pytorch models
 *.bin
