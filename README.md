@@ -29,9 +29,11 @@ input_json['html']="<title>The title </title><p>This the first test sentence.</p
 input_json['language']=""
 ```
 
-if one only uses `http://localhost:5001/chunking` is used.
+if one only uses `http://localhost:5001/chunking`.
 
-Both `http://localhost:5001/extract_terms` and `http://localhost:5001/chunking` will return a json containing a "title", "tags", "excerpt", "text", "hostname", "source-hostname", "source", "cas_content" and "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
+Both `http://localhost:5001/extract_terms`, `http://localhost:5001/chunking` and `http://localhost:5001/extract_questions_answers`  will return a json containing a "title", "tags", "excerpt", "text", "hostname", "source-hostname", "source", "cas_content" and "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
+
+The route `http://localhost:5001/extract_contact_info` will return a json only containing "cas_content" and "language" fields.
 
 In Python the base64 encoded UIMA CAS object (in the "cas_content" field) can be decoded via:
 
@@ -55,6 +57,44 @@ cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True
 The typesystem can be found at `media/typesystem.xml`
 
 The base64 encoded UIMA Cas returned by the POST request to `http://localhost:5001/chunking` will contain a SOFA_ID view, and SENTENCE_TYPE annotation (see `media/TermExtraction.config`). A POST request to `http://localhost:5001/extract_terms` will add the same annotation, but also the TOKEN_TYPE and NER_TYPE annotations (terms and named entiies, see below).
+
+Similary, the POST request to `http://localhost:5001/extract_questions_answers` will contain a SOFA_ID view and a QUESTION_PARAGRAPH_TYPE annotation. The .content field of this annotation will contain only the question. And the .content_context field will contain the question and the answer (i.e. paragraph following the question). Below we show how to obtain these annotations from the cas. 
+
+```
+import base64
+
+from cassis.typesystem import load_typesystem
+from cassis.xmi import load_cas_from_xmi
+
+decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
+
+cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
+
+for par_question in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'QUESTION_PARAGRAPH_TYPE' ] ):
+    print( "QUESTION" )
+    print( par_question.content )
+    print( "QUESTION-ANSWER" )
+    print( par_question.content_context )
+    print( "\n" )
+```
+
+The POST request to `http://localhost:5001/extract_contact_info` will contain a SOFA_ID view and a CONTACT_PARAGRAPH_TYPE annotation. The .content field of this annotation will contain the contact info detected via the provided DISTILBERT model (see release file). Note that this route uses the [apache tika](https://tika.apache.org/) library for extraction of text from html, because many contact info can be found in headers and footers that would be removed by [trafilatura](https://github.com/adbar/trafilatura).
+
+```
+import base64
+
+from cassis.typesystem import load_typesystem
+from cassis.xmi import load_cas_from_xmi
+
+decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
+
+cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
+
+for par_contact in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] ):
+    print( "CONTACT" )
+    print( par_contact.content )
+    print( "\n" )
+```
 
 ## Example:
 
