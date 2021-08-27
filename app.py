@@ -49,7 +49,9 @@ def create_output_json( document:Document ):
     
     #Extract text from html (i.e. without boilerplate sections such as headers...) using trafilatura library.
     #When document.language!=None, then document.html in other language than document.language will be ignored.
-    json_trafilatura=get_json_trafilatura( document.html, target_language=document.language )
+    #setting target_language==None for trafilatura, because we want to extract all text.
+    json_trafilatura=get_json_trafilatura( document.html, target_language=None )
+    #json_trafilatura=get_json_trafilatura( document.html, target_language=document.language )
     if 'title' in json_trafilatura: #i.e. title tag from html, extracted via BeautifulSoup
         output_json[ 'title' ]=json_trafilatura['title']
     else:
@@ -133,6 +135,7 @@ async def contact_info_extraction(document: Document):
     
     annotation_adder.create_cas_from_text( output_json['text'] )
     #add paragraphs to be send to sentence classifier for contact info classification ( DISTILBERT sequence classifier )
+    #also specify parsing method used to extract text, because paragraphs should be detected differently if 'tika' or 'trafilatura' is used.
     annotation_adder.add_paragraph_annotation( parsing_method='tika' )
     #add sentences
     annotation_adder.add_sentence_annotation()
@@ -157,13 +160,45 @@ async def contact_info_extraction(document: Document):
             par.divType='contact'
             par.content=par.get_covered_text().strip()
     
-    #merge consecutive PARAGRAPH_TYPE annotations into the 'CONTACT_PARAGRAPH_TYPE' annotation,
-    annotation_adder.add_contact_annotation( label='contact' )
+    #annotate all 'PARAGRAPH_TYPE' annotations with par.divType=='contact' with 'CONTACT_PARAGRAPH_TYPE'. 
+    #merge consecutive PARAGRAPH_TYPE annotations with divType=='contact' into the 'CONTACT_PARAGRAPH_TYPE' annotation,
+    #save cleaned text in the .content field of the merge_type
+    annotation_adder.merge_annotation( label='contact', root_type='PARAGRAPH_TYPE', merge_type='CONTACT_PARAGRAPH_TYPE' )
     #add context (i.e. preceding and appending SENTENCE_TYPE annotations) to content_context attribute of the 'CONTACT_PARAGRAPH_TYPE' features.
-    annotation_adder.add_context( root_type='CONTACT_PARAGRAPH_TYPE' , type_to_add='SENTENCE_TYPE' )  
+    annotation_adder.add_context( root_type='CONTACT_PARAGRAPH_TYPE' , type_to_add='SENTENCE_TYPE', append=True, prepend=True )  
     
     encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()   
     output_json[ 'cas_content' ]=encoded_cas
     output_json[ 'language' ]=document.language
     
     return output_json
+
+
+@app.post("/extract_questions_answers")
+async def question_answer_extraction(document: Document):
+    
+    output_json={}
+    
+    output_json=create_output_json( document )
+    
+    annotation_adder.create_cas_from_text( output_json['text'] )
+
+    #specify parsing method used to extract text, because paragraphs should be detected differently if 'tika' or 'trafilatura' is used.
+    annotation_adder.add_paragraph_annotation( parsing_method='trafilatura' )
+    
+    for par in annotation_adder.cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'PARAGRAPH_TYPE' ]  ):
+        if "?" in par.get_covered_text() and (len( par.get_covered_text().split() ) >= 2 ):
+            par.divType='question'
+            
+    #annotate all 'PARAGRAPH_TYPE' annotations with par.divType=='question' with 'QUESTION_PARAGRAPH_TYPE'. 
+    #but merge consecutive PARAGRAPH_TYPE annotations with divType=='contact' into the 'QUESTION_PARAGRAPH_TYPE' annotation.
+    #save cleaned text in the .content field of the merge_type
+    annotation_adder.merge_annotation( label='question', root_type='PARAGRAPH_TYPE', merge_type='QUESTION_PARAGRAPH_TYPE'  )
+    #add context (i.e. appending PARAGRAPH_TYPE annotations) to content_context attribute of the 'QUESTION_PARAGRAPH_TYPE' features. (because it could contain the answer)
+    annotation_adder.add_context( root_type='QUESTION_PARAGRAPH_TYPE' , type_to_add='PARAGRAPH_TYPE', append=True, prepend=False ) 
+
+    encoded_cas=base64.b64encode(  bytes( annotation_adder.cas.to_xmi()  , 'utf-8' ) ).decode()   
+    output_json[ 'cas_content' ]=encoded_cas
+    
+    return output_json
+    

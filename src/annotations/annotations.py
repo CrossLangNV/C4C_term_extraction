@@ -214,12 +214,14 @@ class AnnotationAdder():
                            label=named_entity[1] ) )
                 
                 
-    def add_contact_annotation( self, label='contact', root_type:str='PARAGRAPH_TYPE', merge_type:str='CONTACT_PARAGRAPH_TYPE'   ):
+    def merge_annotation( self, label='contact', root_type:str='PARAGRAPH_TYPE', merge_type:str='CONTACT_PARAGRAPH_TYPE'   ):
         
         '''
-        Method to read paragraphs from the cas, check if the divType is labeled as label ( 'contact' ) by the sentence classifier. Merge consecutive such 'contact' paragraph, and annotate them with the 'CONTACT_PARAGRAPH_TYPE' ('merge_type') type. 
+        Method to read root_type annotations ( i.e. paragraphs ) from the cas, check if the divType is labeled as label ( 'contact' ) (e.g. by a sentence classifier). Merge consecutive such labeled paragraphs, and annotate them with the 'CONTACT_PARAGRAPH_TYPE' ('merge_type') type. 
         
-        :param named_entities_sentences: List of List of Named_entity.
+        :param label: String.
+        :param root_type: String.
+        :param merge_type: String.
         '''
 
         #first check if AnnotationAdder contains _cas object:
@@ -232,7 +234,7 @@ class AnnotationAdder():
         contact_paragraph_annotations=self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).select( self._config[ 'Annotation' ][ merge_type ] )
         
         if contact_paragraph_annotations:
-            print( "self.cas already contains CONTACT_PARAGRAPH_TYPE annotations. Removing these annotations, before adding new ones." )
+            print( f"self.cas already contains {merge_type} annotations. Removing these annotations before adding new ones..." )
             for contact_paragraph_annotations in contact_paragraph_annotations:
                 self.cas.get_view( self._config[ 'Annotation' ][ 'SOFA_ID' ]  ).remove_annotation( contact_paragraph_annotations )
             
@@ -271,7 +273,7 @@ class AnnotationAdder():
                 contact_paragraph_type( begin = begin_index, end=end_index, divType=label, content=contact_paragraph_text ) )
                 
                 
-    def add_context(self, root_type:str='CONTACT_PARAGRAPH_TYPE' , type_to_add:str='SENTENCE_TYPE' ):
+    def add_context(self, root_type:str='CONTACT_PARAGRAPH_TYPE' , type_to_add:str='SENTENCE_TYPE', prepend=True, append=True ):
         
         '''
         Method to add context to root_type annotation. Method will get the covered type_to_add annotations that are covered by the root type, get the previous, and nex annotation of type_to_add type, and add the text they cover to the .content attribute of root_type annotation as .content_context attribute of the feature type.
@@ -295,19 +297,27 @@ class AnnotationAdder():
             text=''
             for par in paragraphs:
                 #add the paragraph preceding the contact paragraph as context
-                if par.xmiID==xmiID_begin -1:
+                if par.xmiID==xmiID_begin -1 and prepend:
                     text=par.get_covered_text() + '\n'+ contact_paragraph.content
 
                 #add the paragraph following the contact paragraph as context
-                if par.xmiID==xmiID_end+1:
+                if par.xmiID==xmiID_end+1 and append:
                     #case where we already prepended context to contact_paragraph.content
                     if text:
                         text=text + "\n" + par.get_covered_text()
-                    #case where we did not already prepended context to contact_paragraph.content
+                    #case where we did not already prepended context to contact_paragraph.content (for example prepend==False)
                     else:
                         text=contact_paragraph.content + "\n" + par.get_covered_text()
-
-                text="\n".join([ sentence.strip() for sentence in text.split( "\n" ) if sentence.strip()] )
+        
+            #trivial case where we copy .content to the content_context field of the root_type annotation
+            if not prepend and not append:
+                text=contact_paragraph.content
+            
+            #case were no preceding or following paragraphs were found (e.g because paragraphs that are covered by contact_paragraph were the only ones)
+            if not text:
+                text=contact_paragraph.content
+                    
+            text="\n".join([ sentence.strip() for sentence in text.split( "\n" ) if sentence.strip()] )
 
             contact_paragraph.content_context=text.strip()  #the strip is probably not necessary..
             

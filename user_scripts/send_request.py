@@ -164,7 +164,7 @@ decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf
 cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
 
 for par_contact in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] ):
-    print( "NEW" )
+    print( "CONTACT" )
     print( par_contact.content )
     print( "\n" )
     #print( "WITH CONTEXT" )
@@ -173,7 +173,7 @@ for par_contact in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( c
     
 #4) b) send request to 'extract_contact_info'
 
-test_html=open( "BECI - Kamer van Koophandel & Verbond van Ondernemingen te Brussel.html" ).read()
+test_html=open(  "Wat zijn de huidige maatregelen? | Coronavirus COVID-19.html" ).read()
 
 input_json={}
 input_json[ 'html' ] = test_html
@@ -187,17 +187,41 @@ print(  end-start )
 
 response_json=json.loads( r.content )
 
+print( "length", len( response_json['text'].split( "\n" ) ) )
+
 decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
 
 cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
 
 for par_contact in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'CONTACT_PARAGRAPH_TYPE' ] ):
-    print( "NEW" )
+    print( "CONTACT" )
     print( par_contact.content )
     print( "\n" )
     #print( "WITH CONTEXT" )
     #print( par_contact.content_context )
     #print( "\n" )
-    
-#for sentence in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'SENTENCE_TYPE' ] ):
-#    print( sentence.get_covered_text() )
+
+#4) send request to 'extract_questions_answers'
+
+test_html=open( "Wat zijn de huidige maatregelen? | Coronavirus COVID-19.html" ).read()
+
+input_json={}
+input_json[ 'html' ] = test_html
+input_json[  'language' ] = 'nl'
+
+import time
+start=time.time()
+r = requests.post(  "http://localhost:5001/extract_questions_answers" , json=input_json )
+end=time.time()
+print(  end-start )
+
+response_json=json.loads( r.content )
+
+decoded_cas_content=base64.b64decode( response_json['cas_content'] ).decode('utf-8')
+
+cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True)
+
+for par_question in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( config[ 'Annotation' ][ 'QUESTION_PARAGRAPH_TYPE' ] ):
+    print( "QUESTION-ANSWER" )
+    print( par_question.content_context )
+    print( "\n" )
