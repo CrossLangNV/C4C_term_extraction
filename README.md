@@ -9,9 +9,9 @@ use "dcli.sh" to start a docker container
 
 At `localhost:5001/docs`, one should find the ![swagger](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png?raw=true).
 
-Now a json can be sent to `http://localhost:5001/extract_terms` or `http://localhost:5001/chunking`. The json should contain the fields `html` (i.e. scraped webpage) and `language`. The latter specifying which Spacy model to use. The following languages are supported: 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'.
+Now a json can be sent to `http://localhost:5001/extract_terms`, `http://localhost:5001/chunking`, `http://localhost:5001/extract_contact_info` or `http://localhost:5001/extract_questions_answers`. The json should contain the fields `html` (i.e. scraped webpage) and `language`. The latter specifying which Spacy model to use for term extraction (only used in `http://localhost:5001/extract_terms`, otherwise ignored). The following languages are supported: 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'. 
 
-For extraction of text, and removal of boilerplate text (extraction of main body text) the python package [trafilatura](https://github.com/adbar/trafilatura) is used. When specifying the language code, trafilatura will only extract text from webpages in the given language. If `http://localhost:5001/chunking` is used, it is not necessary to specify the language. 
+For extraction of text, and removal of boilerplate text (extraction of main body text) the python package [trafilatura](https://github.com/adbar/trafilatura) is used. If `http://localhost:5001/chunking` is used, it is not necessary to specify the language.
 
 The json could for example look like this:
 
@@ -29,7 +29,7 @@ input_json['html']="<title>The title </title><p>This the first test sentence.</p
 input_json['language']=""
 ```
 
-if `http://localhost:5001/chunking` is used, and one is not interested in extracting text from webpages in a specific language.
+if one only uses `http://localhost:5001/chunking` is used.
 
 Both `http://localhost:5001/extract_terms` and `http://localhost:5001/chunking` will return a json containing a "title", "tags", "excerpt", "text", "hostname", "source-hostname", "source", "cas_content" and "language" field. The "cas_content" is a UIMA CAS object, encoded in base64.
 
