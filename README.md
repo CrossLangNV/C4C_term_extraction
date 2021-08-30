@@ -6,6 +6,8 @@ Instructions
 use "dbuild.sh" to build the docker image <br />
 use "dcli.sh" to start a docker container
 
+For extraction of contact info ( see below, section 4 ), a DistilBert based classification model is used. Such a trained model is provided in the release file. Please download the model, and change the path to the model in "dbuild.sh".
+
 
 At `localhost:5001/docs`, one should find the ![swagger](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png?raw=true).
 
@@ -56,7 +58,7 @@ cas = load_cas_from_xmi(decoded_cas_content, typesystem=TYPESYSTEM, trusted=True
 
 The typesystem can be found at `media/typesystem.xml`
 
-The base64 encoded UIMA Cas returned by the POST request to `http://localhost:5001/chunking` will contain a SOFA_ID view, and SENTENCE_TYPE annotation (see `media/TermExtraction.config`). A POST request to `http://localhost:5001/extract_terms` will add the same annotation, but also the TOKEN_TYPE and NER_TYPE annotations (terms and named entiies, see below).
+The base64 encoded UIMA Cas returned by the POST request to `http://localhost:5001/chunking` will contain a SOFA_ID view, and SENTENCE_TYPE annotation (see `media/TermExtraction.config`). A POST request to `http://localhost:5001/extract_terms` will add the same annotation, but also the TOKEN_TYPE and NER_TYPE annotations (terms and named entities, see below).
 
 Similary, the POST request to `http://localhost:5001/extract_questions_answers` will contain a SOFA_ID view and a QUESTION_PARAGRAPH_TYPE annotation. The .content field of this annotation will contain only the question. And the .content_context field will contain the question and the answer (i.e. paragraph following the question). Below we show how to obtain these annotations from the cas. 
 
@@ -78,7 +80,7 @@ for par_question in cas.get_view( config[ 'Annotation' ][ 'SOFA_ID' ] ).select( 
     print( "\n" )
 ```
 
-The POST request to `http://localhost:5001/extract_contact_info` will contain a SOFA_ID view and a CONTACT_PARAGRAPH_TYPE annotation. The .content field of this annotation will contain the contact info detected via the provided DISTILBERT model (see release file). Note that this route uses the [apache tika](https://tika.apache.org/) library for extraction of text from html, because many contact info can be found in headers and footers that would be removed by [trafilatura](https://github.com/adbar/trafilatura).
+The POST request to `http://localhost:5001/extract_contact_info` will contain a SOFA_ID view and a CONTACT_PARAGRAPH_TYPE annotation. The .content field of this annotation will contain the contact info detected via the provided DistilBert model (see release file). Note that this route uses the [apache tika](https://tika.apache.org/) library for extraction of text from html, because many contact info can be found in headers and footers that would be removed by [trafilatura](https://github.com/adbar/trafilatura).
 
 ```
 import base64
@@ -169,7 +171,7 @@ Detected named entities are added as a NER_TYPE annotation to the SOFA_ID view.
 
 ## 4) Contact Info Detection
 
-Using a finetuned DistilBert model, paragraphs containing contact info are detected. We refer to the release file for training data ( processed_training_data_adress_detection.zip, we refer to the .tsv file), and for a model trained on this training data. We refer to `notebooks/3_train_classifier_bert_pytorch.ipynb` for a notebook showing how to train a model on this training data.
+Using a finetuned DistilBert model, paragraphs containing contact info are detected. We refer to the release file for training data ( processed_training_data_adress_detection.zip, see the .tsv file), and for a model trained on this training data. We refer to `notebooks/3_train_classifier_bert_pytorch.ipynb` for a notebook showing how to train a model on this training data.
 
 Note that for this task we use the [apache tika](https://tika.apache.org/) library for extraction of text from html, because many contact info can be found in headers and footers that would be removed by [trafilatura](https://github.com/adbar/trafilatura).
 
