@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  #  gq_bert:
+  #    build: ./question_generator
+  #    ports:
+  #      - "7500:5000"
+  ##    runtime: nvidia
+  #    environment:
+  #      - "DEVICE=cuda:0"
+  #      - "NVIDIA_VISIBLE_DEVICES=0"
+  #    volumes:
+  #      - "./question_generator:/project"
+
+  c4c_term_extraction:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - "MODEL_DIR=MODELS/model_MULTI_DISTILBERT_unfreeze_last_layers_5epoch_C4C_adresses"
+    ports:
+      - "7001:5001"
+    volumes:
+      - "./src:/work/src"
+      - "./media:/work/media"
+      - "./question_generator:/work/question_generator"
+    #    runtime: nvidia
+    #    environment:
+    #      - "DEVICE=cuda:0"
+    #      - "NVIDIA_VISIBLE_DEVICES=0"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ '0' ]
+              capabilities: [ gpu ]
