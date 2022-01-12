@@ -35,3 +35,16 @@ services:
             - driver: nvidia
               device_ids: [ '0' ]
               capabilities: [ gpu ]
+
+  python_dev:
+    build:
+      context: ./dev
+      dockerfile: ./Dockerfile
+    ports:
+      - "7002:5001"
+    volumes:
+      - "./src:/work/src"
+#      - "./media:/work/media"
+#      - "./question_generator:/work/question_generator"
+#    env_file:
+#      - secrets/term_extraction.env
