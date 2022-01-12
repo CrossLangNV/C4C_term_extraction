@@ -16,16 +16,35 @@ TODO
 
 import re
 from enum import Enum, auto
+from typing import Union
 
 
 class TypesContactInfo(Enum):
     """
     Using auto, because we don't need a value.
+
+    TODO
+        should this be changed to string values?
     """
     EMAIL = auto()
     PHONE = auto()
     HOURS = auto()
     ADDRESS = auto()
+
+
+def classify_contact_type(s: str) -> Union[None, TypesContactInfo]:
+    """
+
+    Returns:
+
+    """
+
+    if classify_email(s):
+        return TypesContactInfo.EMAIL
+
+    # TODO for rest
+
+    return None
 
 
 def classify_email(s: str,
