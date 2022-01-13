@@ -48,3 +48,13 @@ services:
 #      - "./question_generator:/work/question_generator"
 #    env_file:
 #      - secrets/term_extraction.env
+
+  contact_info_api:
+    build:
+      context: ./src/contact_info/api
+      dockerfile: ./Dockerfile
+    ports:
+      - "7003:1234"
+    volumes:
+      - "./src:/work/src"
+

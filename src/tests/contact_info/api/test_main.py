@@ -2,7 +2,7 @@ import unittest
 
 from fastapi.testclient import TestClient
 
-from src.contact_info.app import app, Label, Sentence
+from src.contact_info.api.main import app, Label, Sentence
 from src.contact_info.classification_contact_info import TypesContactInfo
 
 client = TestClient(app)
