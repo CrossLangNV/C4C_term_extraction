@@ -12,6 +12,7 @@ services:
   #    volumes:
   #      - "./question_generator:/project"
 
+  # TODO This does not seem to be working at the moment.
   c4c_term_extraction:
     build:
       context: .
