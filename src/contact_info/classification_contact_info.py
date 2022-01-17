@@ -17,6 +17,7 @@ TODO
 import re
 from enum import Enum, auto
 from typing import Union
+from nltk.tokenize import word_tokenize
 
 
 class TypesContactInfo(Enum):
@@ -73,3 +74,53 @@ def classify_email(s: str,
             re.fullmatch(pattern_valid_email, match)
 
     return bool(matches)
+
+
+def classify_hours(s: str) -> bool:
+    """
+    Classify whether a string contains opening hours info or not.
+
+    Args:
+        s: sentence with contact info that possibly contains openings hours info.
+
+    Returns:
+        boolean: True if the sentence contained opening hours' info; False if not.
+
+    """
+
+    text_tokenized = word_tokenize(s)
+    text_tokenized_lower = list(map(str.lower, text_tokenized))
+
+    """
+    Days of the week
+    """
+    allow_list = [
+        "Monday", "Mon", "Mo",
+        "Tuesday", "Tue", "Tu",
+        "Wednesday", "Wed", "We",  # TODO 'We' could lead to lots of false postives.
+        "Thursday", "Thu", "Th",
+        "Friday", "Fri", "Fr",
+        "Saturday", "Sat", "Sa",
+        "Sunday", "Sun", "Su"
+    ]
+    allow_list_lower = list(map(str.lower, allow_list))
+
+    # Find
+    for allow in allow_list_lower:
+        if allow in text_tokenized_lower:
+            return True
+
+    """
+    Detect a time.
+    
+    within word boundaries
+    then HH:MM or HH'h'MM
+    """
+    pattern_time = r"\b([0-1][0-9]|[2][0-3]|[0-9])[h:]([0-5][0-9])\b"
+
+    matches = re.findall(pattern_time, s)
+
+    if bool(matches):
+        return bool(matches)
+
+    return False

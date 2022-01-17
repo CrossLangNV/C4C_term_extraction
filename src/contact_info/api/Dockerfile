@@ -11,6 +11,8 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
+RUN python3 -m nltk.downloader punkt
+
 WORKDIR /work
 
 #copy code:
