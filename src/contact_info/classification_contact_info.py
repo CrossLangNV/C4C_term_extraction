@@ -97,7 +97,7 @@ def classify_hours(s: str) -> bool:
     allow_list = [
         "Monday", "Mon", "Mo",
         "Tuesday", "Tue", "Tu",
-        "Wednesday", "Wed", "We",  # TODO 'We' could lead to lots of false postives.
+        "Wednesday", "Wed", "We",  # TODO 'We' could lead to lots of false positives.
         "Thursday", "Thu", "Th",
         "Friday", "Fri", "Fr",
         "Saturday", "Sat", "Sa",

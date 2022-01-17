@@ -3,7 +3,8 @@ from typing import List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from src.contact_info.classification_contact_info import classify_contact_type, classify_email, TypesContactInfo
+from src.contact_info.classification_contact_info import classify_contact_type, classify_email, classify_hours, \
+    TypesContactInfo
 
 
 class Sentence(BaseModel):
@@ -71,5 +72,20 @@ async def post_email(sentence: Sentence):
     """
     b_email = classify_email(sentence.string)
     return b_email
+
+
+@app.post("/classify_contact_type/hours", response_model=bool)
+async def post_hours(sentence: Sentence):
+    """
+    Individual identifier for contact information for the type 'opening hours'
+
+    Args:
+        sentence:
+
+    Returns:
+
+    """
+    b_hours = classify_hours(sentence.string)
+    return b_hours
 
 # TODO other classifiers
