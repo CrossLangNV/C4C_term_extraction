@@ -2,7 +2,8 @@ import os
 import unittest
 from typing import List
 
-from src.contact_info.classification_contact_info import classify_email, classify_hours
+from src.contact_info.classification_contact_info import classify_address, classify_email, classify_hours, \
+    classify_telephone
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "../../..",
                            r"DATA/contact_info")
@@ -66,8 +67,59 @@ class TestClassifyHours(unittest.TestCase):
                 self.assertFalse(b)
 
 
-class TestEvaluation(unittest.TestCase):
-    """
+class TestClassifyTelephone(unittest.TestCase):
+    def test_correct_prediction(self,
+                                country_code="US"):
+
+        l_telephone = [
+            "123-456-7890",
+            "(123) 456-7890",
+            "123 456 7890",
+            "123.456.7890",
+            "+91 (123) 456-7890"
+        ]
+
+        l_not_telephone = [
+        ]
+
+        for s in l_telephone:
+            with self.subTest(f"True: {s}"):
+                b = classify_telephone(s, country_code=country_code)
+                self.assertTrue(b)
+
+        for s in l_not_telephone:
+            with self.subTest(f"False: {s}"):
+                b = classify_telephone(s, country_code=country_code)
+                self.assertFalse(b)
+
+
+class TestClassifyAddress(unittest.TestCase):
+    def test_correct_prediction(self
+                                ):
+
+        l_address = [
+            """Lorem ipsum
+            225 E.John Carpenter Freeway,
+            Suite 1500 Irving, Texas 75062
+            Dorem sit amet
+            """,
+        ]
+
+        l_not_address = [
+        ]
+
+        for s in l_address:
+            with self.subTest(f"True: {s}"):
+                b = classify_address(s)
+                self.assertTrue(b)
+
+        for s in l_not_address:
+            with self.subTest(f"False: {s}"):
+                b = classify_address(s)
+                self.assertFalse(b)
+
+    class TestEvaluation(unittest.TestCase):
+        """
     Not really a test, but a way to conglomerate the different evaluations
     """
 
@@ -79,11 +131,22 @@ class TestEvaluation(unittest.TestCase):
         self.all_text = get_paragraphs(FILENAME_ALL)
 
     def test_evaluate_email(self):
+
         self._evaluate_x(method=classify_email, l_gt=self.email)
 
     def test_evaluate_hours(self):
 
         self._evaluate_x(method=classify_hours, l_gt=self.hours)
+
+    def test_evaluate_address(self):
+
+        self._evaluate_x(method=classify_address, l_gt=self.address)
+
+    def test_evaluate_telephone(self,
+                                country_code="BE"):
+
+        self._evaluate_x(method=lambda s: classify_telephone(s, country_code=country_code),
+                         l_gt=self.telephone)
 
     def _evaluate_x(self,
                     method,

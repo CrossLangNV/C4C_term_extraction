@@ -15,9 +15,13 @@ TODO
 """
 
 import re
-from enum import Enum, auto
+from enum import auto, Enum
 from typing import Union
+
+import nltk
+import phonenumbers
 from nltk.tokenize import word_tokenize
+from postal.parser import parse_address
 
 
 class TypesContactInfo(Enum):
@@ -124,3 +128,113 @@ def classify_hours(s: str) -> bool:
         return bool(matches)
 
     return False
+
+
+def classify_address(text: str,
+                     ) -> bool:
+    """
+    classifier to check if a sentence contains an address or not.
+
+    Is currently based on https://stackoverflow.com/a/38506078/6921921
+
+    Args:
+        s:
+
+    Returns:
+
+    """
+
+    class Address():
+        CITY = "city"
+        ROAD = "road"
+        HOUSE_NUMBER = "house_number"
+
+        def __init__(self, text):
+            self.text = text
+
+            address_parsed = parse_address(text,
+                                           language=None, country=None  # TODO use extra info
+                                           )
+
+            self.cities = []
+            self.roads = []
+            self.house_numbers = []
+
+            for s, label in address_parsed:
+                if label == self.CITY:
+                    self.cities.append(s)
+                elif label == self.ROAD:
+                    self.roads.append(s)
+                elif label == self.HOUSE_NUMBER:
+                    self.house_numbers.append(s)
+
+        def classify(self):
+            """
+            If it has a city or street information, it will return true
+
+            Returns:
+
+            """
+
+            if 0:
+                # While it looks nice, it doesn't work consistently
+                for chunk in nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(text))):
+
+                    if hasattr(chunk, "label"):
+                        if chunk.label() == "GPE" or chunk.label() == "GSP":
+                            return True
+
+                return False
+
+            else:
+                return bool(self.cities) or bool(self.roads)
+
+    address = Address(text)
+
+    return address.classify()
+
+
+def classify_telephone(s: str,
+                       country_code: str,
+
+                       debug=True) -> bool:
+    """
+
+    Args:
+        s:
+        country_code: # TODO probably needed
+        validate:
+
+    Returns:
+
+    """
+
+    """
+    Find numbers and sequence of numbers. 
+    ' ', '/', '.', '(', ')', '+' are all allowed.
+    """
+
+    ### OLD
+
+    if True:
+        # This is a possibility if we know the country of origin. Else it will be too coarsly.
+
+        possible_telephone_numbers = []
+        for match in list(phonenumbers.PhoneNumberMatcher(s,
+                                                          country_code,
+                                                          leniency=phonenumbers.Leniency.POSSIBLE)
+                          ):
+            if debug:
+                print(match)
+            possible_telephone_numbers.append(match.number)
+
+    else:
+        pattern_telephone = r"\d+(?:[\s.\/]+\d+){0,}"
+        possible_telephone_numbers = re.findall(pattern_telephone, s)
+
+        # phonenumbers.is_valid_number(possible_telephone_number)
+        possible_telephone_numbers = list(
+            filter(lambda s: phonenumbers.is_possible_number(phonenumbers.parse(s, country_code)),
+                   possible_telephone_numbers))
+
+    return bool(len(possible_telephone_numbers))
