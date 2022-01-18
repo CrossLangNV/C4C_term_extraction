@@ -1,17 +1,5 @@
 """
 methods/API/... to classify the contact information further into address, telephone number, email, opening hours...
-
-TODO
- - Implement 4 classifiers,
- - Implement combined classifier
- - Have an API.
- - Write connector for this API
- - connect to CPSV-AP pipeline, see other repo
- - Check the data that classifies contact info, perhaps we can use something from that.
- - Write REGEX code for some of the classifiers, e.g.
-    - telephone numbers: 'numbers, spaces, dots, slashes'
-    - opening hours is all about hours and days.
-    - Address (?), street + number + city?
 """
 
 import re
