@@ -16,7 +16,7 @@ TODO
 
 import re
 from enum import auto, Enum
-from typing import Union
+from typing import List
 
 import nltk
 import phonenumbers
@@ -37,19 +37,29 @@ class TypesContactInfo(Enum):
     ADDRESS = auto()
 
 
-def classify_contact_type(s: str) -> Union[None, TypesContactInfo]:
+def classify_contact_type(s: str,
+                          country_code: str) -> List[TypesContactInfo]:
     """
 
     Returns:
 
     """
 
+    l_type = []
+
     if classify_email(s):
-        return TypesContactInfo.EMAIL
+        l_type.append(TypesContactInfo.EMAIL)
 
-    # TODO for rest
+    if classify_address(s):
+        l_type.append(TypesContactInfo.ADDRESS)
 
-    return None
+    if classify_hours(s):
+        l_type.append(TypesContactInfo.HOURS)
+
+    if classify_telephone(s, country_code=country_code):
+        l_type.append(TypesContactInfo.PHONE)
+
+    return l_type
 
 
 def classify_email(s: str,
