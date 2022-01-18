@@ -196,8 +196,7 @@ def classify_address(text: str,
 
 def classify_telephone(s: str,
                        country_code: str,
-
-                       debug=True) -> bool:
+                       debug=False) -> bool:
     """
 
     Args:

@@ -37,18 +37,15 @@ services:
               device_ids: [ '0' ]
               capabilities: [ gpu ]
 
-  python_dev:
+  python_contact_info:
     build:
-      context: ./dev
-      dockerfile: ./Dockerfile
+      context: src/contact_info
+      dockerfile: Dockerfile
+    image: "python_contact_info"
     ports:
       - "7002:5001"
     volumes:
       - "./src:/work/src"
-#      - "./media:/work/media"
-#      - "./question_generator:/work/question_generator"
-#    env_file:
-#      - secrets/term_extraction.env
 
   contact_info_api:
     build:
@@ -58,4 +55,5 @@ services:
       - "7003:1234"
     volumes:
       - "./src:/work/src"
-
+    depends_on:
+      - python_contact_info
