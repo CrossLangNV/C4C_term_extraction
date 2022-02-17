@@ -235,3 +235,7 @@ def classify_telephone(s: str,
                    possible_telephone_numbers))
 
     return bool(len(possible_telephone_numbers))
+
+
+def detect_email(s: str) -> List[str]:
+    pass
