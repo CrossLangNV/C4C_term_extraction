@@ -1,7 +1,7 @@
 #
 DEPRECATED/
-DATA/
-MODELS/
+MODELS/*
+!MODELS/.gitkeep
 notebooks/*
 
 !notebooks/2_generate_tsv_file_for_training.ipynb
@@ -113,3 +113,5 @@ ENV/
 # mypy
 .mypy_cache/
 
+# Pycharm
+*.idea
