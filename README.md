@@ -16,7 +16,12 @@ use "dcli.sh" to start a docker container
 For extraction of contact info ( see below, section 4 ), a DistilBert based classification model is used. Such a trained model is provided in the release file. Please download the model, and change the path to the model in "dbuild.sh".
 
 
-At `localhost:5001/docs`, one should find the ![swagger](https://github.com/CrossLangNV/C4C_term_extraction/tree/main/media/swagger.png?raw=true).
+At `localhost:5001/docs`, one should find the swagger interface:
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td><img src="https://user-images.githubusercontent.com/8747446/161077743-d32c3e56-03ab-4188-9d09-809d774aa050.png"></td>
+    </tr>
+</table>
 
 Now a json can be sent to `http://localhost:5001/extract_terms`, `http://localhost:5001/chunking`, `http://localhost:5001/extract_contact_info` or `http://localhost:5001/extract_questions_answers`. The json should contain the fields `html` (i.e. scraped webpage) and `language`. The latter specifying which Spacy model to use for term extraction (only used in `http://localhost:5001/extract_terms`, otherwise ignored). The following languages are supported: 'en', 'de', 'nl', 'fr', 'it', 'nb', 'sl', 'hr'. 
 
