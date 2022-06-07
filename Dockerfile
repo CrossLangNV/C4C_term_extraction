@@ -6,8 +6,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 # Install some basic utilities
 RUN apt-get update && apt-get install -y \
-    curl \
-    git && \
+    curl && \
     apt-get clean
     
 # Install miniconda to /miniconda
@@ -30,13 +29,8 @@ RUN pip install Cython
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-# Installs for question generator
-COPY question_generator/requirements.txt question_generator/requirements.txt
-RUN pip install -r question_generator/requirements.txt
-# Already cloned
-#RUN git clone https://github.com/amontgomerie/question_generator
-#RUN python -m pip install -e question_generator
-
+RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
 RUN apt-get update && apt-get -y install default-jre
 
 RUN python -m nltk.downloader stopwords
@@ -51,20 +45,22 @@ WORKDIR /work
 
 #copy code:
 COPY app.py /work
-#COPY src /work/src
-#COPY src/annotations /work/src/annotations
-#COPY src/terms/ /work/src/terms
-#COPY src/cleaning /work/src/cleaning
-#COPY src/sentence_classification /work/src/sentence_classification
-#COPY src/aliases.py /work/src/
+COPY src/annotations /work/src/annotations
+COPY src/terms/ /work/src/terms
+COPY src/cleaning /work/src/cleaning
+COPY src/sentence_classification /work/src/sentence_classification
+COPY src/aliases.py /work/src/
 
 #copy model:
 COPY $MODEL_DIR/*.bin /work/models/pytorch_model.bin
 COPY $MODEL_DIR/config.json /work/models/
 COPY $MODEL_DIR/vocab.txt /work/models/
 
-##copy config files
-#COPY media/TermExtraction.config /work/media/
-#COPY media/typesystem.xml /work/media/
+#copy config files
+COPY media/TermExtraction.config /work/media/
+COPY media/typesystem.xml /work/media/
+
+RUN python -m spacy download 'en_core_web_sm'
+RUN pip install sacremoses==0.0.43 sentencepiece==0.1.94 tokenizers==0.9.4
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5001"]

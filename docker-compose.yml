@@ -39,7 +39,7 @@ services:
 
   python_contact_info:
     build:
-      context: src/contact_info
+      context: ./src/contact_info
       dockerfile: Dockerfile
     image: "python_contact_info"
     ports:
@@ -49,11 +49,10 @@ services:
 
   contact_info_api:
     build:
+      # The build depends on python_contact_info
       context: ./src/contact_info/api
       dockerfile: ./Dockerfile
     ports:
       - "7003:1234"
     volumes:
       - "./src:/work/src"
-    depends_on:
-      - python_contact_info
