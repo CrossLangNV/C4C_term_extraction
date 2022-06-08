@@ -1,13 +1,12 @@
 import base64
 import configparser
 import os
-from typing import Union, List, Dict
-
 from cassis.typesystem import load_typesystem
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import Dict, List, Union
 
-from question_generator.scripts import generate_question_from_text
+# from question_generator.scripts import generate_question_from_text
 from src.annotations.annotations import AnnotationAdder
 from src.cleaning.cleaning_tika import get_text_tika
 from src.cleaning.cleaning_trafilatura import get_json_trafilatura
@@ -213,14 +212,13 @@ async def question_answer_extraction(document: Document):
 
     return output_json
 
-
-@app.post("/question_generator/generate")
-async def question_answer_extraction(segment: str) -> List[Dict[str, str]]:
-    """
-    Generates questions based on a text segment.
-
-    :param Segment:
-    :return:
-    """
-
-    return generate_question_from_text.main(segment)
+# @app.post("/question_generator/generate")
+# async def question_answer_extraction(segment: str) -> List[Dict[str, str]]:
+#     """
+#     Generates questions based on a text segment.
+#
+#     :param Segment:
+#     :return:
+#     """
+#
+#     return generate_question_from_text.main(segment)
